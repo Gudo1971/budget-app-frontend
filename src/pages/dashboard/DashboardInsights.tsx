@@ -57,7 +57,7 @@ export default function DashboardInsightsPage() {
   const uiTransactions = transactions.map((t) => ({
     ...t,
     id: String(t.id),
-    category: t.category?.toLowerCase().trim() || "onbekend",
+    category: t.category?.name?.toLowerCase().trim() || "onbekend",
   }));
 
   const categories = uiTransactions.reduce<Record<string, number>>((acc, t) => {

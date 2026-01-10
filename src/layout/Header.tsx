@@ -151,6 +151,17 @@ export function Header() {
               >
                 Transacties
               </Link>
+              <Link
+                to="/receipts"
+                style={{
+                  pointerEvents: isReceipts ? "none" : "auto",
+                  opacity: isReceipts ? 0.5 : 1,
+                  fontWeight: isReceipts ? "bold" : "normal",
+                  cursor: isReceipts ? "default" : "pointer",
+                }}
+              >
+                Bonnen
+              </Link>
 
               <ColorModeToggle />
               <LanguageToggle />

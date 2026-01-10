@@ -7,25 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node
-node_modules/
-
-# Build output
-dist/
-dist-ssr/
-
-# Local env
-.env
-.env.local
+node_modules
+dist
+dist-ssr
 *.local
-
-# SQLite database
-*.db
-*.db-shm
-*.db-wal
-
-# Uploads (OCR, receipts, images)
-uploads/
 
 # Editor directories and files
 .vscode/*

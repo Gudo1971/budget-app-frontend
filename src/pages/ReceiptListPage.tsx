@@ -1,77 +1,78 @@
-import { useEffect, useState } from "react";
-import { Box, Heading, VStack, HStack, Text, Spinner } from "@chakra-ui/react";
-import { DownloadIcon } from "@chakra-ui/icons";
-import { ReceiptCard } from "../components/receipts/ReceiptCard";
+import { useState, useEffect } from "react";
+import { Box, Spinner, Text, Flex, Heading } from "@chakra-ui/react";
 import { SettingsLauncher } from "../components/settings-engine/SettingsLauncher";
-import { GearMenu } from "../components/ui/GearMenu";
-import { UploadBarIcon } from "../components/icons/UploadBarIcon";
-import { UploadBarTopIcon } from "@/components/icons/UploadBarTopIcon";
-type Receipt = {
-  id: number;
-  filename: string;
-  original_name: string;
-  uploaded_at: string;
-};
+import { ReceiptCard } from "../components/receipts/ReceiptCard";
+import { ReceiptPreviewPanel } from "../components/receipts/ReceiptPreviewPanel";
 
-export default function ReceiptListPage() {
-  const [receipts, setReceipts] = useState<Receipt[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchReceipts = async () => {
-    setLoading(true);
-    const res = await fetch("http://localhost:3001/api/receipts");
-    const data = await res.json();
-    setReceipts(data);
-    setLoading(false);
-  };
-
-  const deleteReceipt = async (id: number) => {
-    if (!confirm("Weet je zeker dat je deze bon wilt verwijderen")) return;
-
-    await fetch(`http://localhost:3001/api/receipts/${id}`, {
-      method: "DELETE",
-    });
-
-    fetchReceipts();
-  };
-
-  const downloadReceipt = (id: number) => {
-    window.open(`http://localhost:3001/api/receipts/${id}/file`, "_blank");
-  };
+export function ReceiptListPage() {
+  const [receipts, setReceipts] = useState<any[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [loadingReceipts, setLoadingReceipts] = useState(true);
 
   useEffect(() => {
-    fetchReceipts();
+    async function load() {
+      const res = await fetch("/api/receipts");
+      const data = await res.json();
+      setReceipts(data);
+      setLoadingReceipts(false);
+    }
+    load();
   }, []);
+
+  function toggleSelect(id: number) {
+    setSelectedId((prev) => (prev === id ? null : id));
+  }
+
+  async function handleDelete(id: number) {
+    await fetch(`/api/receipts/${id}`, { method: "DELETE" });
+    setReceipts((prev) => prev.filter((r) => r.id !== id));
+    if (selectedId === id) setSelectedId(null);
+  }
+
+  function handleDownload(id: number) {
+    window.open(`/api/receipts/${id}/file`, "_blank");
+  }
 
   return (
     <Box>
-      <HStack justify="space-between" mb={6}>
-        <Heading>Bonnen</Heading>
+      <Flex justify="space-between" align="center" mb={4}>
+        <Heading size="md">Bonnetjes</Heading>
+        <SettingsLauncher route="/receipts/settings" />
+      </Flex>
 
-        <SettingsLauncher route="/settings/receipts" />
-      </HStack>
-
-      {loading && (
-        <VStack pt={4}>
-          <Spinner />
-          <Text>Bonnen laden…</Text>
-        </VStack>
+      {loadingReceipts && (
+        <Box p={4}>
+          <Spinner size="sm" />
+          <Text ml={2} display="inline">
+            Bonnen laden…
+          </Text>
+        </Box>
       )}
 
-      {!loading && receipts.length === 0 && (
-        <Text color="gray.500">Nog geen bonnen geüpload.</Text>
+      {!loadingReceipts && receipts.length === 0 && (
+        <Box p={4} color="gray.500">
+          Nog geen bonnen geüpload.
+        </Box>
       )}
 
-      <VStack align="stretch" gap={4}>
-        {receipts.map((r) => (
-          <ReceiptCard
-            key={r.id}
-            receipt={r}
-            onDelete={deleteReceipt}
-            onDownload={downloadReceipt}
-          />
+      {!loadingReceipts &&
+        receipts.map((r) => (
+          <Box key={r.id} mb={4}>
+            <ReceiptCard
+              receipt={r}
+              onClick={() => toggleSelect(r.id)}
+              isSelected={selectedId === r.id}
+              onDelete={handleDelete}
+              onDownload={handleDownload}
+            />
+
+            {selectedId === r.id && (
+              <Box mt={2}>
+                <ReceiptPreviewPanel receipt={r} />
+              </Box>
+            )}
+          </Box>
         ))}
-      </VStack>
     </Box>
   );
 }
