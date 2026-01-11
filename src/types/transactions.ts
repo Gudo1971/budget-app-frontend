@@ -1,13 +1,14 @@
 export type Transaction = {
-  id: string;
+  id: string; // UI always uses string IDs
   description: string;
   amount: number;
-  category: string;
-  merchant: string;
-  recurring: boolean;
-  date: string;
-  category_name?: string;
+  category: string; // always normalized to string
+  merchant?: string;
+  recurring?: boolean;
+  date?: string;
+  category_name?: string; // optional AI metadata
 };
+
 export type ExtractedItem = {
   name: string;
   quantity: number;
@@ -15,7 +16,9 @@ export type ExtractedItem = {
   total?: number | null;
   category?: string | null;
   co2_grams?: number | null;
-  [key: string]: any; // HIER
+
+  // Allow AI or OCR to add extra fields
+  [key: string]: any;
 };
 
 export type ExtractedReceipt = {
@@ -27,5 +30,30 @@ export type ExtractedReceipt = {
   tax?: number | null;
   currency: string | null;
   items: ExtractedItem[];
-  [key: string]: any; // EN HIER
+
+  // Allow OCR/AI to attach metadata
+  [key: string]: any;
 };
+
+export function adaptBackendTransaction(t: any): Transaction {
+  return {
+    id: String(t.id),
+    description: t.description,
+    amount: t.amount,
+    category: t.category?.name ?? "Onbekend",
+    merchant: t.merchant ?? undefined,
+    recurring: t.recurring ?? false,
+    date: t.date ?? undefined,
+  };
+}
+export function adaptCsvTransaction(t: any, index: number): Transaction {
+  return {
+    id: String(t.id ?? index),
+    description: t.description,
+    amount: Number(t.amount),
+    category: t.category ?? "Onbekend",
+    merchant: t.merchant ?? undefined,
+    recurring: false,
+    date: t.date ?? undefined,
+  };
+}

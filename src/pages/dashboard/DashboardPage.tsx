@@ -13,15 +13,15 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 // Carousel
-import { InsightsCarousel } from "@/components/insights/InsightsCarousel";
+import { InsightsCarousel } from "@/features/insights/components/InsightsCarousel";
 
 // Cards
-import { TransactionAnalysisCard } from "@/components/cards/TransactionAnalysisCard";
-import { CategoryStatsCard } from "@/components/cards/CategoryStatsCard";
-import { BudgetProgressCard } from "@/components/cards/BudgetProgressCard";
+import { TransactionAnalysisCard } from "@/features/dashboard/components/TransactionAnalysisCard";
+import { CategoryStatsCard } from "@/features/dashboard/components/CategoryStatsCard";
+import { BudgetProgressCard } from "@/features/dashboard/components/BudgetProgressCard";
 
 // InsightBox
-import { InsightBox } from "@/components/dashboard/InsightBox";
+import { InsightBox } from "../../features/dashboard/components/InsightBox";
 
 // AI engine
 import {
@@ -30,7 +30,7 @@ import {
 } from "@/lib/ai/realisticInsights";
 
 // Hooks
-import { useTransactions } from "@/hooks/useTransactions";
+import { useTransactions } from "@/features/transactions/shared/hooks/useTransactions";
 
 export default function DashboardPage() {
   const { colorMode } = useColorMode();

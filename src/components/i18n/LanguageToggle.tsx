@@ -1,5 +1,5 @@
 import { Select, useTheme, useColorMode } from "@chakra-ui/react";
-import { useI18n } from "../../hooks/useI18n";
+import { useI18n } from "../../i18n/useI18n";
 
 export function LanguageToggle() {
   const { lang, setLang } = useI18n();

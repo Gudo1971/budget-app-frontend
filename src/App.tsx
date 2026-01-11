@@ -1,11 +1,11 @@
 import { Routes, Route } from "react-router-dom";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import InsightsPage from "./pages/dashboard/DashboardInsights";
-import SplitPage from "./pages/SplitPage";
-import TransactionsPage from "./pages/TransactionsPage";
+import SplitPage from "./features/receipts/extract/pages/SplitPage";
+import TransactionsPage from "./features/transactions/components/create/list/pages/TransactionsPage";
 import Layout from "./layout/Layout";
-import { ReceiptListPage } from "./pages/ReceiptListPage";
-import ReceiptSettingsPage from "./pages/ReceiptSettingPage";
+import { ReceiptListPage } from "./features/receipts/extract/pages/ReceiptListPage";
+import ReceiptSettingsPage from "./features/receipts/extract/pages/ReceiptSettingPage";
 
 export default function App() {
   return (

@@ -26,15 +26,15 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { InsightsCarousel } from "@/components/insights/InsightsCarousel";
-import { TransactionAnalysisCard } from "@/components/cards/TransactionAnalysisCard";
-import { BudgetProgressCard } from "@/components/cards/BudgetProgressCard";
-import { CategoryStatsCard } from "@/components/cards/CategoryStatsCard";
-import { VasteLastenCard } from "@/components/cards/VasteLastenCard";
-import { SavingsGoalCard } from "@/components/cards/SavingsGoalCard";
+import { InsightsCarousel } from "@/features/insights/components/InsightsCarousel";
+import { TransactionAnalysisCard } from "@/features/dashboard/components/TransactionAnalysisCard";
+import { BudgetProgressCard } from "@/features/dashboard/components/BudgetProgressCard";
+import { CategoryStatsCard } from "@/features/dashboard/components/CategoryStatsCard";
+import { VasteLastenCard } from "@/features/dashboard/components/VasteLastenCard";
+import { SavingsGoalCard } from "@/features/dashboard/components/SavingsGoalCard";
 import { calculateRealisticStress } from "@/lib/ai/realisticInsights";
 
-import { useTransactions } from "@/hooks/useTransactions";
+import { useTransactions } from "@/features/transactions/shared/hooks/useTransactions";
 
 export type CardKey =
   | "transaction"
