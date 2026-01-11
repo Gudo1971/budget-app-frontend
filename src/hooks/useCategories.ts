@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { apiGet } from "../lib/api";
 
 export type Category = {
-  id: string;
+  id: number; // <-- FIXED
   name: string;
+  type: string;
 };
 
 export function useCategories() {

@@ -15,15 +15,18 @@ export function ReceiptListItem({
     <Flex
       p={3}
       borderBottom="1px solid"
-      borderColor="gray.200"
+      borderColor="gray.700"
       cursor="pointer"
-      bg={isSelected ? "gray.100" : "white"}
-      _hover={{ bg: "gray.50" }}
+      bg={isSelected ? "gray.800" : "gray.900"}
+      _hover={{ bg: "gray.800" }}
       onClick={onClick}
+      color="white"
     >
       <Box>
-        <Text fontWeight="medium">{receipt.filename}</Text>
-        <Text fontSize="sm" color="gray.600">
+        <Text fontWeight="medium" color="white">
+          {receipt.filename}
+        </Text>
+        <Text fontSize="sm" color="gray.400">
           {receipt.created_at}
         </Text>
       </Box>
