@@ -6,9 +6,10 @@ import {
   useTheme,
   useColorMode,
 } from "@chakra-ui/react";
-import { TransactionCard } from "../../components/cards/TransactionCard";
+import TransactionCard from "../dashboard/DashboardPage";
+const TransactionCardAny = TransactionCard as any;
 import { useState } from "react";
-import { useTransactions } from "@/hooks/useTransactions";
+import { useTransactions } from "@/features/transactions/shared/hooks/useTransactions";
 
 export function DashboardTransactions() {
   const theme = useTheme();
@@ -57,7 +58,7 @@ export function DashboardTransactions() {
 
       <VStack w="full" align="stretch" gap={3}>
         {filtered.map((t) => (
-          <TransactionCard key={t.id} transaction={t} />
+          <TransactionCardAny key={t.id} transaction={t} />
         ))}
 
         {filtered.length === 0 && (

@@ -3,9 +3,9 @@ import { useMatch } from "../hooks/useMatch";
 import {
   Receipt,
   ExtractedReceipt,
-} from "@/features/transactions/extract/types/extractTypes";
+} from "../../../receipts/extract/types/extractTypes";
 import { MatchCandidatesList } from "../components/MatchCandidatesList";
-import { CreateTransactionForm } from "../components/CreateTransactionForm";
+import { CreateTransactionForm } from "../../../transactions/components/create/CreateTransactionForm";
 
 export function MatchPage({
   receipt,
