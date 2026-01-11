@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Box, Spinner, Text, Flex, Heading } from "@chakra-ui/react";
 import { SettingsLauncher } from "../components/settings-engine/SettingsLauncher";
 import { ReceiptCard } from "../components/receipts/ReceiptCard";
-import { ReceiptPreviewPanel } from "../components/receipts/ReceiptPreviewPanel";
+import { ReceiptPreviewPanel } from "../features/transactions/extract/components/ReceiptPreviewPanel";
 
 export function ReceiptListPage() {
   const [receipts, setReceipts] = useState<any[]>([]);

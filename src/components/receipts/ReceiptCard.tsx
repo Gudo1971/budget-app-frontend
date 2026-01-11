@@ -1,11 +1,4 @@
-import {
-  Box,
-  HStack,
-  VStack,
-  Text,
-  IconButton,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { Box, HStack, VStack, Text, IconButton } from "@chakra-ui/react";
 import { DeleteIcon, DownloadIcon } from "@chakra-ui/icons";
 
 export type Receipt = {
@@ -28,27 +21,26 @@ export function ReceiptCard({
   onClick?: () => void;
   isSelected?: boolean;
 }) {
-  const bg = useColorModeValue("white", "gray.800");
-
   return (
     <Box
       p={4}
-      bg={bg}
+      bg="gray.900"
       borderRadius="md"
-      boxShadow={isSelected ? "md" : "sm"}
-      border={isSelected ? "2px solid #3182CE" : "1px solid transparent"}
+      border={isSelected ? "2px solid #3182CE" : "1px solid gray.700"}
       cursor="pointer"
-      _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+      _hover={{ transform: "translateY(-2px)", boxShadow: "md" }}
       transition="all 0.15s ease"
+      color="white"
       onClick={onClick}
     >
-      <HStack justify="space-between" mb={4}>
+      <HStack justify="space-between" align="flex-start">
         {/* Thumbnail */}
         <Box
           boxSize="48px"
           borderRadius="md"
           overflow="hidden"
-          bg="gray.100"
+          bg="gray.800"
+          border="1px solid gray.700"
           onClick={(e) => {
             e.stopPropagation();
             window.open(`/api/receipts/${receipt.id}/file`, "_blank");
@@ -61,19 +53,25 @@ export function ReceiptCard({
         </Box>
 
         {/* Info */}
-        <VStack align="start" spacing={0} flex="1" ml={3}>
-          <Text fontWeight="bold">{receipt.original_name}</Text>
-          <Text fontSize="sm" color="gray.500">
+        <VStack align="start" spacing={1} flex="1" ml={3}>
+          <Text fontWeight="bold" color="white">
+            {receipt.original_name}
+          </Text>
+          <Text fontSize="sm" color="gray.400">
             Geüpload op {new Date(receipt.uploaded_at).toLocaleString()}
           </Text>
         </VStack>
 
         {/* Acties */}
-        <HStack>
+        <HStack spacing={2}>
           <IconButton
             aria-label="Download"
             icon={<DownloadIcon />}
-            colorScheme="blue"
+            size="sm"
+            bg="gray.800"
+            color="white"
+            border="1px solid gray.700"
+            _hover={{ bg: "gray.700" }}
             onClick={(e) => {
               e.stopPropagation();
               onDownload(receipt.id);
@@ -83,7 +81,11 @@ export function ReceiptCard({
           <IconButton
             aria-label="Verwijder"
             icon={<DeleteIcon />}
-            colorScheme="red"
+            size="sm"
+            bg="gray.800"
+            color="red.300"
+            border="1px solid gray.700"
+            _hover={{ bg: "gray.700" }}
             onClick={(e) => {
               e.stopPropagation();
               onDelete(receipt.id);

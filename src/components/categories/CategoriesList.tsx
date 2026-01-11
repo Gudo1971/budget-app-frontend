@@ -1,6 +1,5 @@
 import { Box, Text, VStack } from "@chakra-ui/react";
 import { useCategories } from "../../hooks/useCategories";
-import type { Category } from "../../hooks/useCategories";
 
 export function CategoriesList() {
   const { data: categories, loading } = useCategories();
@@ -9,9 +8,13 @@ export function CategoriesList() {
     return <Text>Loading categories...</Text>;
   }
 
+  if (categories.length === 0) {
+    return <Text>Geen categorieën gevonden.</Text>;
+  }
+
   return (
     <VStack align="stretch" spacing={3}>
-      {categories.map((c: Category) => (
+      {categories.map((c) => (
         <Box
           key={c.id}
           p={3}
