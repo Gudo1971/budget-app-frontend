@@ -1,4 +1,14 @@
-import { VStack, Collapse, Box } from "@chakra-ui/react";
+import {
+  VStack,
+  Collapse,
+  Box,
+  Flex,
+  IconButton,
+  Text,
+} from "@chakra-ui/react";
+import { ArrowBackIcon } from "@chakra-ui/icons";
+import { useNavigate } from "react-router-dom";
+
 import { useState } from "react";
 
 import {
@@ -17,15 +27,18 @@ import {
 } from "@dnd-kit/sortable";
 
 import { SortableHeader } from "./components/SortableHeader";
+import { BackButton } from "@/components/back-button/BackButton";
 
 export type SettingsItem = {
   key: string;
   label: string;
-  preview: React.ComponentType; // 👈 component, geen JSX.Element
+  preview: React.ComponentType;
   actions?: (helpers: { openPreviewFor: (key: string) => void }) => JSX.Element;
 };
 
 export function SettingsEngine({ config }: { config: SettingsItem[] }) {
+  const navigate = useNavigate();
+
   const [order, setOrder] = useState<string[]>(config.map((c) => c.key));
   const [enabled, setEnabled] = useState<Record<string, boolean>>(
     Object.fromEntries(config.map((c) => [c.key, true]))
@@ -55,10 +68,12 @@ export function SettingsEngine({ config }: { config: SettingsItem[] }) {
     const activeItem = config.find((c) => c.key === openPreview);
     if (!activeItem) return null;
 
-    const PreviewComponent = activeItem.preview; // 👈 component instantiëren
+    const PreviewComponent = activeItem.preview;
 
     return (
       <VStack w="full" align="stretch" spacing={6}>
+        <BackButton />
+
         <SortableHeader
           key={activeItem.key}
           id={activeItem.key}
@@ -76,7 +91,7 @@ export function SettingsEngine({ config }: { config: SettingsItem[] }) {
         >
           <Collapse in={true} animateOpacity>
             <Box mt={3}>
-              <PreviewComponent /> {/* 👈 correcte render */}
+              <PreviewComponent />
             </Box>
           </Collapse>
         </SortableHeader>
@@ -87,6 +102,8 @@ export function SettingsEngine({ config }: { config: SettingsItem[] }) {
   // ⭐ MODE 1: Geen preview open → toon alle tegels
   return (
     <VStack w="full" align="stretch" spacing={6}>
+      <BackButton />
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

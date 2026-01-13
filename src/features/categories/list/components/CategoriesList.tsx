@@ -1,5 +1,5 @@
 import { Box, Text, VStack } from "@chakra-ui/react";
-import { useCategories } from "../../list/components/shared/components/hooks/useCategories";
+import { useCategories } from "./shared/components/hooks/useCategories";
 
 export function CategoriesList() {
   const { data: categories, loading } = useCategories();
