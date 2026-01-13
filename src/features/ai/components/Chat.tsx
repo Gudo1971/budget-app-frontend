@@ -1,77 +1,76 @@
-import { useState } from "react"
-import { Box, VStack, HStack, Input, Button, Text } from "@chakra-ui/react"
-import { buildPrompt } from "../utils/promptEngine"
-import { callAIStream } from "../service/ai"
-import { t } from "../i18n/i18n"
+import { useState } from "react";
+import { Box, VStack, HStack, Input, Button, Text } from "@chakra-ui/react";
+import { buildPrompt } from "@/lib/ai/promptEngine";
+import { callAIStream } from "@/lib/ai/ai";
+import { t } from "@/i18n/i18n";
 
 export function Chat() {
   const [messages, setMessages] = useState([
-    { role: "assistant", content: t("chat.welcome") }
-  ])
+    { role: "assistant", content: t("chat.welcome") },
+  ]);
 
-  const [input, setInput] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function sendMessage() {
-    if (!input.trim() || loading) return
+    if (!input.trim() || loading) return;
 
-    const userMessage = { role: "user" as const, content: input }
+    const userMessage = { role: "user" as const, content: input };
 
     // User + lege assistant bubble toevoegen
-    setMessages(prev => [
+    setMessages((prev) => [
       ...prev,
       userMessage,
-      { role: "assistant" as const, content: "" }
-    ])
+      { role: "assistant" as const, content: "" },
+    ]);
 
-    const currentInput = input
-    setInput("")
-    setLoading(true)
+    const currentInput = input;
+    setInput("");
+    setLoading(true);
 
     const prompt = buildPrompt({
-      userInput: currentInput
-    })
+      userInput: currentInput,
+    });
 
-    let accumulated = ""
+    let accumulated = "";
 
     try {
-      await callAIStream(prompt, chunk => {
-        accumulated += chunk
+      await callAIStream(prompt, (chunk) => {
+        accumulated += chunk;
 
         // Update alleen het laatste bericht (de assistant‑bubble)
-        setMessages(prev => {
-          if (prev.length === 0) return prev
-          const updated = [...prev]
-          const lastIndex = updated.length - 1
-          const last = updated[lastIndex]
+        setMessages((prev) => {
+          if (prev.length === 0) return prev;
+          const updated = [...prev];
+          const lastIndex = updated.length - 1;
+          const last = updated[lastIndex];
 
-          if (last.role !== "assistant") return prev
+          if (last.role !== "assistant") return prev;
 
           updated[lastIndex] = {
             ...last,
-            content: accumulated
-          }
+            content: accumulated,
+          };
 
-          return updated
-        })
-      })
+          return updated;
+        });
+      });
     } catch (e) {
-      console.error(e)
-      setMessages(prev => [
+      console.error(e);
+      setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: t("chat.error")
-        }
-      ])
+          content: t("chat.error"),
+        },
+      ]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
     <VStack w="100%" align="start" p={4} gap={4}>
-      
       {/* Messages */}
       <VStack w="100%" align="start" gap={3}>
         {messages.map((m, i) => (
@@ -92,18 +91,13 @@ export function Chat() {
       <HStack w="100%">
         <Input
           value={input}
-          onChange={e => setInput(e.target.value)}
+          onChange={(e) => setInput(e.target.value)}
           placeholder={t("chat.placeholder")}
         />
-        <Button
-          onClick={sendMessage}
-          loading={loading}
-          colorScheme="blue"
-        >
+        <Button onClick={sendMessage} isLoading={loading} colorScheme="blue">
           {t("chat.send")}
         </Button>
       </HStack>
-
     </VStack>
-  )
+  );
 }
