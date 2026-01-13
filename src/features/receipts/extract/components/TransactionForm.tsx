@@ -13,14 +13,12 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useUser } from "../context/UserContext";
+import { useUser } from "../../../../context/UserContext";
 
 type Category = {
   id: string;
   name: string;
 };
-
-const [categories, setCategories] = useState<Category[]>([]);
 
 const schema = z.object({
   amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {

@@ -10,13 +10,13 @@ import {
   Divider,
 } from "@chakra-ui/react";
 
-import { Receipt } from "@/features/transactions/extract/types/extractTypes";
+import { Receipt } from "../../extract/types/extractTypes";
 import { ReceiptTotals } from "./ReceiptTotals";
 import { ReceiptItems } from "./ReceiptItems";
 import { MerchantCategorySelector } from "./MerchantCategorySelector";
 import { ReceiptMetadata } from "./ReceiptMetadata";
 import { MatchPage } from "@/features/transactions/match/pages/MatchPage";
-import { ExtractedReceipt } from "@/features/transactions/extract/types/extractTypes";
+import { ExtractedReceipt } from "../../extract/types/extractTypes";
 
 export function ReceiptExtractModal({
   isOpen,

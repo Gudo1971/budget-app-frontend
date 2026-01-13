@@ -29,7 +29,9 @@ export const SelectStyles = {
       },
 
       borderRadius: "md",
-      transition: "all 0.2s ease",
+      transitionProperty: "all",
+      transitionDuration: "0.2s",
+      transitionTimingFunction: "ease",
     },
   }),
 };

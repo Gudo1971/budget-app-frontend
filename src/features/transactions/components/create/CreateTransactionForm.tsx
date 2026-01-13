@@ -8,11 +8,11 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { CreateTransactionFromReceiptInput } from "../match/types/matchTypes";
+import { CreateTransactionFromReceiptInput } from "../../match/types/matchTypes";
 import {
   ExtractedReceipt,
   Receipt,
-} from "../../receipts/extract/types/extractTypes";
+} from "../../../receipts/extract/types/extractTypes";
 
 // -----------------------------
 // AI → category_id mapping
@@ -63,6 +63,7 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
     date: extracted.date ?? "",
     merchant: extracted.merchant ?? "",
     category_id: null,
+    description: extracted.merchant ?? "",
   });
 
   function update<K extends keyof CreateTransactionFromReceiptInput>(
@@ -89,21 +90,17 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
   useEffect(() => {
     const merchantKey = extracted.merchant?.toLowerCase().trim();
 
-    // 1. Merchant memory (highest priority)
     const learned = merchantKey ? loadMerchantMemory(merchantKey) : null;
     if (learned) {
       update("category_id", learned);
       return;
     }
 
-    // 2. AI category mapping
     const aiKey = extracted.merchant_category?.toLowerCase().trim();
     if (aiKey && CATEGORY_MAP[aiKey]) {
       update("category_id", CATEGORY_MAP[aiKey]);
       return;
     }
-
-    // 3. No match → leave null
   }, [extracted]);
 
   return (
@@ -152,6 +149,17 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
       </Box>
 
       <Box>
+        <FormLabel color="gray.400">Omschrijving</FormLabel>
+        <Input
+          bg="gray.800"
+          color="white"
+          borderColor="gray.700"
+          value={form.description}
+          onChange={(e) => update("description", e.target.value)}
+        />
+      </Box>
+
+      <Box>
         <FormLabel color="gray.400">Categorie</FormLabel>
         <Select
           bg="gray.800"
@@ -178,20 +186,25 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
         mt={2}
         onClick={async () => {
           try {
+            // ⭐ ALWAYS NEGATIVE AMOUNT
+            const rawAmount = form.amount ?? extracted.total ?? 0;
+            const amount = -Math.abs(rawAmount);
+
             const res = await fetch("/api/transactions/from-extracted", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 receiptId: receipt.id,
                 extracted,
-                form,
+                form: {
+                  ...form,
+                  amount, // ⭐ OVERRIDDEN HERE
+                  description: form.description || form.merchant,
+                },
               }),
             });
 
-            // ⭐ Duplicate detected (409)
             if (res.status === 409) {
-              const data = await res.json();
-
               toast({
                 title: "Transactie bestaat al",
                 description: "Deze bon is al eerder opgeslagen.",
@@ -204,7 +217,6 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
               return;
             }
 
-            // ⭐ Andere fouten
             if (!res.ok) {
               toast({
                 title: "Fout bij opslaan",
@@ -216,7 +228,6 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
               return;
             }
 
-            // ⭐ Succes
             toast({
               title: "Transactie opgeslagen",
               status: "success",
@@ -224,7 +235,6 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
               isClosable: true,
             });
 
-            // Merchant memory opslaan
             if (form.merchant && form.category_id) {
               saveMerchantMemory(form.merchant, form.category_id);
             }

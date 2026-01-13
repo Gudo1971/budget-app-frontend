@@ -5,7 +5,7 @@ type Transaction = {
   id: string;
   description: string;
   amount: number;
-  category: string;
+  categoryName: string;
   merchant?: string;
   recurring?: boolean;
   reasoning?: string;
@@ -16,37 +16,50 @@ type Transaction = {
 type TransactionCardProps = {
   transaction: Transaction;
 };
+console.log("TRANSACTION CARD LOADED");
 
 export function TransactionCard({ transaction }: TransactionCardProps) {
   const navigate = useNavigate();
-
+  console.log("MERCHANT RAW:", transaction.merchant);
+  console.log("MERCHANT TYPE:", typeof transaction.merchant);
+  console.log("MERCHANT VALUE:", JSON.stringify(transaction.merchant));
   const isExpense = transaction.amount < 0;
   const sign = isExpense ? "-" : "+";
   const amount = Math.abs(transaction.amount).toFixed(2);
+  console.log("TRANSACTION:", transaction);
+  console.log("ID TYPE:", transaction.id, typeof transaction.id);
+  console.log("AMOUNT TYPE:", transaction.amount, typeof transaction.amount);
+  console.log(
+    "CATEGORY TYPE:",
+    transaction.categoryName,
+    typeof transaction.categoryName
+  );
 
   return (
     <Box
       w="100%"
-      borderRadius="xl"
-      border="1px solid"
+      borderWidth="1px"
       borderColor="gray.200"
-      bg="white"
+      borderRadius="xl"
+      bg="gray.50"
+      _dark={{ bg: "gray.800" }}
       boxShadow="sm"
       px={4}
       py={3}
-      transition="all 0.2s ease"
+      transition="0.2s"
       _hover={{
         boxShadow: "md",
         borderColor: "gray.300",
         bg: "gray.50",
+        _dark: { bg: "gray.800" },
         transform: "translateY(-1px)",
       }}
     >
-      <HStack justify="space-between" align="flex-start" gap={4}>
+      <HStack justify="space-between" align="flex-start" spacing={4}>
         {/* Linkerzijde */}
-        <VStack align="start" gap={1}>
-          <HStack gap={2}>
-            <Text fontSize="sm" fontWeight="medium" color="gray.900">
+        <VStack align="start" spacing={1}>
+          <HStack spacing={2}>
+            <Text fontSize="sm" fontWeight="medium" color="gray.300">
               {transaction.description}
             </Text>
 
@@ -62,17 +75,23 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
             )}
           </HStack>
 
-          <HStack gap={2}>
+          <HStack spacing={2}>
             {transaction.merchant && (
-              <Text fontSize="xs" color="gray.500">
+              <Text
+                fontSize="xs"
+                color="gray.600"
+                _dark={{ color: "gray.300" }}
+              >
                 {transaction.merchant}
               </Text>
             )}
-            <Text fontSize="xs" color="gray.400">
+
+            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
               •
             </Text>
-            <Text fontSize="xs" color="gray.500">
-              {transaction.category}
+
+            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
+              {transaction.categoryName}
             </Text>
           </HStack>
 
@@ -84,7 +103,7 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
         </VStack>
 
         {/* Rechterzijde */}
-        <VStack align="flex-end" gap={2} minW="100px">
+        <VStack align="flex-end" spacing={2} minW="100px">
           <Text
             fontSize="sm"
             fontWeight="semibold"

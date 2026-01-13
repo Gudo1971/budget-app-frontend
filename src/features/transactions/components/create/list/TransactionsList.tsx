@@ -1,6 +1,7 @@
-import { Box, Text, VStack } from "@chakra-ui/react";
+import { VStack, Text } from "@chakra-ui/react";
 import { useTransactions } from "../../../shared/hooks/useTransactions";
 import type { BackendTransaction } from "../../../shared/hooks/useTransactions";
+import { TransactionCard } from "../../../../dashboard/components/TransactionCard";
 
 export function TransactionsList() {
   const { data: transactions, loading } = useTransactions();
@@ -12,22 +13,17 @@ export function TransactionsList() {
   return (
     <VStack align="stretch" spacing={3}>
       {transactions.map((t: BackendTransaction) => (
-        <Box
+        <TransactionCard
           key={t.id}
-          p={3}
-          borderWidth="1px"
-          borderRadius="md"
-          bg="gray.50"
-          _dark={{ bg: "gray.700" }}
-        >
-          <Text fontWeight="bold">{t.description}</Text>
-          <Text fontSize="sm" opacity={0.8}>
-            {t.date}
-          </Text>
-          <Text color={t.amount < 0 ? "red.400" : "green.400"}>
-            €{t.amount}
-          </Text>
-        </Box>
+          transaction={{
+            id: String(t.id),
+            description: t.description,
+            amount: t.amount,
+            date: t.date,
+            categoryName: t.category?.name ?? "Onbekend",
+            merchant: t.merchant ?? undefined,
+          }}
+        />
       ))}
     </VStack>
   );

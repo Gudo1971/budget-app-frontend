@@ -10,6 +10,8 @@ export const LinkStyles = {
           : theme.colors.brand[300],
       textDecoration: "none",
     },
-    transition: "color 0.2s ease",
+    transitionProperty: "all",
+    transitionDuration: "0.2s",
+    transitionTimingFunction: "ease",
   }),
 };

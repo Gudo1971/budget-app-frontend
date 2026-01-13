@@ -3,11 +3,10 @@ export const TooltipStyles = {
     px: 3,
     py: 2,
     borderRadius: "md",
-    border: "1px solid",
-    borderColor: "whiteAlpha.300",
-    backdropFilter: "blur(6px)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    backdropFilter: "blur(6px)", // moet naar styleConfig API, niet baseStyle
     boxShadow: "none",
-
     _content: {
       bg: "dark.surfaceAlt", // ← exact dezelfde kleur als je kaarten
       color: "dark.text",

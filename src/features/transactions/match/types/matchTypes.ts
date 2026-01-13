@@ -9,5 +9,6 @@ export type CreateTransactionFromReceiptInput = {
   amount: number;
   date: string;
   merchant: string;
-  category_id: number | null; // <-- toevoegen
+  category_id: number | null;
+  description: string;
 };
