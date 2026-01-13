@@ -8,12 +8,13 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { SettingsIcon } from "@chakra-ui/icons";
-import { JSX } from "react";
+import { ReactElement } from "react";
+import React from "react";
 
 type GearAction = {
   label: string;
   onClick: () => void;
-  icon?: JSX.Element; // correcte typing
+  icon?: ReactElement; // FIXED
   tooltip?: string;
   isDanger?: boolean;
 };
@@ -25,18 +26,19 @@ type Props = {
 export function GearMenu({ actions }: Props) {
   return (
     <Menu>
-      <Tooltip label="Instellingen">
+      <Tooltip label="Instellingen" placement="bottom-end">
         <MenuButton
           as={IconButton}
           icon={<SettingsIcon />}
           aria-label="Instellingen"
           variant="ghost"
+          size="md"
         />
       </Tooltip>
 
       <MenuList>
         {actions.map((action, i) => (
-          <div key={i}>
+          <React.Fragment key={action.label}>
             {i > 0 && <MenuDivider />}
             <MenuItem
               icon={action.icon}
@@ -45,7 +47,7 @@ export function GearMenu({ actions }: Props) {
             >
               {action.label}
             </MenuItem>
-          </div>
+          </React.Fragment>
         ))}
       </MenuList>
     </Menu>

@@ -13,7 +13,9 @@ export const CardStyles = {
           : theme.colors.dark.border,
       boxShadow: colorMode === "light" ? "sm" : "md",
       padding: 4,
-      transition: "all 0.2s ease",
+      transitionProperty: "all",
+      transitionDuration: "0.2s",
+      transitionTimingFunction: "ease",
     },
   }),
 };

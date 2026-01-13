@@ -21,7 +21,9 @@ export const InputStyles = {
         boxShadow: `0 0 0 1px ${theme.colors.brand[400]}`,
       },
       borderRadius: "md",
-      transition: "all 0.2s ease",
+      transitionProperty: "all",
+      transitionDuration: "0.2s",
+      transitionTimingFunction: "ease",
     },
   }),
 };
