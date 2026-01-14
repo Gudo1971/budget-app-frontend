@@ -6,7 +6,7 @@ import TransactionsPage from "./features/transactions/components/create/list/pag
 import Layout from "./layout/Layout";
 import { ReceiptListPage } from "./features/receipts/extract/pages/ReceiptListPage";
 import ReceiptSettingsPage from "./features/receipts/extract/pages/ReceiptSettingPage";
-
+import TransactionSettingsPage from "./features/transactions/components/create/list/pages/TransactionSettingsPage";
 export default function App() {
   return (
     <Routes>
@@ -14,6 +14,10 @@ export default function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/dashboard/insights" element={<InsightsPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
+        <Route
+          path="/transactions/settings"
+          element={<TransactionSettingsPage />}
+        />
 
         {/* Receipt list */}
         <Route path="/receipts" element={<ReceiptListPage />} />

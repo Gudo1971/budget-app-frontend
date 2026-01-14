@@ -1,39 +1,43 @@
-import { useRef, useState } from "react"
-import { Box, Button, Text, VStack, HStack } from "@chakra-ui/react"
-import Papa from "papaparse"
-import { t } from "../i18n"
+// ===============================
+// CSVUploader.tsx
+// ===============================
 
-export type CSVUploaderProps = {
-  onData: (rows: any[]) => void
-}
+import { useRef, useState } from "react";
+import { Box, Button, Text, VStack } from "@chakra-ui/react";
+import Papa from "papaparse";
 
-export function CSVUploader({ onData }: CSVUploaderProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null)
-  const [fileName, setFileName] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+export function CSVUploader({ onData }: { onData: (rows: any[]) => void }) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const selected = e.target.files?.[0];
+    if (!selected) return;
 
-    if (!file.name.endsWith(".csv")) {
-      setError(t("csv.errorInvalid"))
-      return
+    if (!selected.name.endsWith(".csv")) {
+      setError("Geen geldige CSV");
+      setFile(null);
+      return;
     }
 
-    setError(null)
-    setFileName(file.name)
+    setError(null);
+    setFile(selected);
+  }
+
+  function handleImport() {
+    if (!file) return;
 
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: (result) => {
-        onData(result.data)
+        onData(result.data);
       },
       error: () => {
-        setError(t("csv.errorParse"))
-      }
-    })
+        setError("CSV kon niet worden gelezen");
+      },
+    });
   }
 
   return (
@@ -46,30 +50,27 @@ export function CSVUploader({ onData }: CSVUploaderProps) {
         onChange={handleFileSelect}
       />
 
-      <Button
-        colorScheme="blue"
-        onClick={() => inputRef.current?.click()}
-      >
-        {t("csv.uploadButton")}
+      <Button colorScheme="blue" onClick={() => inputRef.current?.click()}>
+        Selecteer een CSV
       </Button>
 
-      {fileName && (
+      {file && (
         <Text fontSize="sm" color="gray.600">
-          {t("csv.selected")}: {fileName}
+          Geselecteerd: {file.name}
         </Text>
       )}
 
+      {file && (
+        <Button colorScheme="green" onClick={handleImport}>
+          CSV inladen
+        </Button>
+      )}
+
       {error && (
-        <Box
-          bg="red.100"
-          color="red.700"
-          p={2}
-          borderRadius="md"
-          w="100%"
-        >
+        <Box bg="red.100" color="red.700" p={2} borderRadius="md" w="100%">
           {error}
         </Box>
       )}
     </VStack>
-  )
+  );
 }
