@@ -1,22 +1,23 @@
-import { PageLayout } from "../../../../../../components/layout/PageLayout";
-import { GearMenu } from "../../../../../../components/ui/GearMenu";
-import { TransactionsList } from "../TransactionsList"; // voorbeeldpad
+import { PageLayout } from "@/components/layout/PageLayout";
+import { SettingsEngine } from "@/features/settings-enigine/SettingsEngine";
+import { transactionSettingsConfig } from "@/features/settings-enigine/config/transactionSettingsConfig";
+import { TransactionsList } from "../TransactionsList";
+import { FiSettings } from "react-icons/fi";
+import { IconButton } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 
 export default function TransactionsPage() {
-  const handleCsvUpload = () => {};
-  const handlePdfUpload = () => {};
-  const handleReceiptUpload = () => {};
-
+  const navigate = useNavigate();
   return (
     <PageLayout
       title="Transacties"
       rightSection={
-        <GearMenu
-          actions={[
-            { label: "CSV importeren", onClick: handleCsvUpload },
-            { label: "PDF importeren", onClick: handlePdfUpload },
-            { label: "Bon uploaden", onClick: handleReceiptUpload },
-          ]}
+        <IconButton
+          aria-label="Instellingen"
+          icon={<FiSettings />}
+          variant="ghost"
+          size="md"
+          onClick={() => navigate("/transactions/settings")}
         />
       }
     >
