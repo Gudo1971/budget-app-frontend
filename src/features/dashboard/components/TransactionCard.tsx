@@ -2,38 +2,30 @@ import { Box, HStack, VStack, Text, Badge, Button } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
 type Transaction = {
-  id: string;
+  id: number;
   description: string;
   amount: number;
-  categoryName: string;
   merchant?: string;
-  recurring?: boolean;
-  reasoning?: string;
-  confidence?: number;
   date?: string;
+
+  category: {
+    name: string;
+    subcategory: string | null;
+  };
+
+  recurring?: boolean;
 };
 
 type TransactionCardProps = {
   transaction: Transaction;
 };
-console.log("TRANSACTION CARD LOADED");
 
 export function TransactionCard({ transaction }: TransactionCardProps) {
   const navigate = useNavigate();
-  console.log("MERCHANT RAW:", transaction.merchant);
-  console.log("MERCHANT TYPE:", typeof transaction.merchant);
-  console.log("MERCHANT VALUE:", JSON.stringify(transaction.merchant));
   const isExpense = transaction.amount < 0;
   const sign = isExpense ? "-" : "+";
   const amount = Math.abs(transaction.amount).toFixed(2);
-  console.log("TRANSACTION:", transaction);
-  console.log("ID TYPE:", transaction.id, typeof transaction.id);
-  console.log("AMOUNT TYPE:", transaction.amount, typeof transaction.amount);
-  console.log(
-    "CATEGORY TYPE:",
-    transaction.categoryName,
-    typeof transaction.categoryName
-  );
+  console.log("CATEGORY CHECK:", transaction.id, transaction.category);
 
   return (
     <Box
@@ -56,7 +48,6 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
       }}
     >
       <HStack justify="space-between" align="flex-start" spacing={4}>
-        {/* Linkerzijde */}
         <VStack align="start" spacing={1}>
           <HStack spacing={2}>
             <Text fontSize="sm" fontWeight="medium" color="gray.300">
@@ -75,25 +66,23 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
             )}
           </HStack>
 
-          <HStack spacing={2}>
-            {transaction.merchant && (
-              <Text
-                fontSize="xs"
-                color="gray.600"
-                _dark={{ color: "gray.300" }}
-              >
-                {transaction.merchant}
-              </Text>
-            )}
-
-            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
-              •
+          {transaction.merchant && (
+            <Text
+              fontSize="sm"
+              fontWeight="medium"
+              color="gray.700"
+              _dark={{ color: "gray.200" }}
+            >
+              {transaction.merchant}
             </Text>
+          )}
 
-            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
-              {transaction.categoryName}
-            </Text>
-          </HStack>
+          <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
+            {transaction.category?.name ?? "Onbekend"}{" "}
+            {transaction.category?.subcategory
+              ? ` • ${transaction.category.subcategory}`
+              : ""}
+          </Text>
 
           {transaction.date && (
             <Text fontSize="xs" color="gray.400">
@@ -102,7 +91,6 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
           )}
         </VStack>
 
-        {/* Rechterzijde */}
         <VStack align="flex-end" spacing={2} minW="100px">
           <Text
             fontSize="sm"
@@ -116,7 +104,6 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
             {isExpense ? "Uitgave" : "Inkomst"}
           </Text>
 
-          {/* Split-knop */}
           {isExpense && (
             <Button
               size="xs"

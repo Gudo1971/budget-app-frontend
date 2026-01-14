@@ -3,16 +3,15 @@ import { apiGet } from "../../../../lib/api/api";
 
 export type BackendTransaction = {
   id: number;
-  date: string;
   description: string;
   amount: number;
-  category_id: number | null;
-  merchant: string | null; // ← HIER
+  date: string;
+  merchant?: string;
+
   category: {
-    id: number;
     name: string;
-    type: string;
-  } | null;
+    subcategory: string | null;
+  };
 };
 
 type TransactionsResponse = {

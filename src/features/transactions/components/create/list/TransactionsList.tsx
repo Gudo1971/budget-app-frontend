@@ -16,12 +16,15 @@ export function TransactionsList() {
         <TransactionCard
           key={t.id}
           transaction={{
-            id: String(t.id),
+            id: t.id,
             description: t.description,
             amount: t.amount,
             date: t.date,
-            categoryName: t.category?.name ?? "Onbekend",
             merchant: t.merchant ?? undefined,
+            category: {
+              name: t.category?.name ?? "Onbekend",
+              subcategory: t.category?.subcategory ?? null,
+            },
           }}
         />
       ))}
