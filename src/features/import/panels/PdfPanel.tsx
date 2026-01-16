@@ -1,16 +1,16 @@
 // ===============================
-// CsvPanel.tsx (previewpanel)
+// PdfPnel.tsx (previewpanel)
 // ===============================
 
 import { useState } from "react";
 import { VStack, Text, Button, useToast } from "@chakra-ui/react";
-import { CSVUploader } from "../components/CsvUploader";
-import { mapCsvRowToTransaction } from "../logic/mapCsvRowToTransaction";
+import { PdfUploader } from "../components/PdfUploader";
+import { mapPdfRowToTransaction } from "../logic/mapPdfRowsToTransactions";
 import { isDuplicate } from "../logic/duplicateCheck";
 import { saveTransaction } from "../logic/saveTransaction";
 import { useNavigate } from "react-router-dom";
 
-export function CsvPanel({ onClose }: { onClose?: () => void }) {
+export function PdfPanel({ onClose }: { onClose?: () => void }) {
   const [preview, setPreview] = useState<any[]>([]);
   const [importing, setImporting] = useState(false);
 
@@ -20,8 +20,8 @@ export function CsvPanel({ onClose }: { onClose?: () => void }) {
   // ===============================
   // Stap 1: CSV inlezen + duplicate check
   // ===============================
-  async function handleCsvLoaded(rows: any[]) {
-    const mapped = rows.map(mapCsvRowToTransaction);
+  async function handlePdfLoaded(rows: any[]) {
+    const mapped = rows.map(mapPdfRowToTransaction);
 
     const existing = await fetch("/api/transactions").then((r) => r.json());
     const filtered = mapped.filter((tx) => !isDuplicate(existing.data, tx));
@@ -31,7 +31,7 @@ export function CsvPanel({ onClose }: { onClose?: () => void }) {
     if (filtered.length === 0) {
       toast({
         title: "Geen nieuwe transacties",
-        description: "Alle transacties in deze CSV zijn al bekend.",
+        description: "Alle transacties in deze pdf zijn al bekend.",
         status: "info",
         duration: 3000,
         isClosable: true,
@@ -68,15 +68,15 @@ export function CsvPanel({ onClose }: { onClose?: () => void }) {
   return (
     <VStack align="stretch" spacing={4}>
       <Text fontSize="lg" fontWeight="bold">
-        CSV importeren
+        PDF importeren
       </Text>
 
-      <CSVUploader
+      <PdfUploader
         onData={(rows) => {
-          console.log("CSV LOADED!", rows);
-          console.log("CSV ROW EXAMPLE:", rows[0]);
+          console.log("PDF LOADED!", rows);
+          console.log("PDF ROW EXAMPLE:", rows[0]);
 
-          handleCsvLoaded(rows);
+          handlePdfLoaded(rows);
         }}
       />
 

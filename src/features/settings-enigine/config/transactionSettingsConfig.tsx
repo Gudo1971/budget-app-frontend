@@ -2,7 +2,7 @@ import { HeaderIconButton } from "@/components/icons/HeaderIconButton";
 import { FiUpload, FiFileText, FiFilePlus } from "react-icons/fi";
 
 import { CsvPanel } from "@/features/import/panels/CsvPanel";
-import { PdfPanel } from "../panels/PdfPanel";
+import { PdfPanel } from "../../import/panels/PdfPanel";
 import { UploadPanel } from "../panels/UploadPanel";
 
 export const transactionSettingsConfig = [
