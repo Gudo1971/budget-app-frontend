@@ -55,7 +55,11 @@ export function ReceiptExtractModal({
               <Divider />
 
               <Box bg="gray.900" p={4} borderRadius="md">
-                <MatchPage receipt={receipt} extracted={extracted} />
+                <MatchPage
+                  receipt={receipt}
+                  extracted={extracted}
+                  onClose={onClose} // ⭐ doorgeven aan MatchPage
+                />
               </Box>
             </VStack>
           </Box>

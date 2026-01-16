@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Box, Button, Input, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, Input, Text, VStack, useToast } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 
 export function ReceiptUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const navigate = useNavigate();
+  const toast = useToast();
 
   const handleUpload = async () => {
     if (!file) return;
@@ -21,11 +24,25 @@ export function ReceiptUpload() {
     setUploading(false);
 
     if (!res.ok) {
-      alert("Upload mislukt");
+      toast({
+        title: "Upload mislukt",
+        description: "Probeer het opnieuw.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
       return;
     }
 
-    alert("Bon geüpload!");
+    toast({
+      title: "Bon geüpload",
+      description: "De bon is succesvol verwerkt.",
+      status: "success",
+      duration: 2500,
+      isClosable: true,
+    });
+    console.log("Navigating to receipts...");
+    navigate("/receipts");
   };
 
   return (

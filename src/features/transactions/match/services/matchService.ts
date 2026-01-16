@@ -15,8 +15,8 @@ export async function linkReceiptToTransaction(
   receiptId: number,
   transactionId: number
 ) {
-  await fetch(`/api/receipts/${receiptId}/link-transaction`, {
-    method: "POST",
+  await fetch(`/api/receipts/${receiptId}/link`, {
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ transactionId }),
   });
@@ -26,7 +26,7 @@ export async function createTransactionFromReceipt(
   receiptId: number,
   data: CreateTransactionFromReceiptInput
 ) {
-  await fetch(`/api/transactions/from-receipt`, {
+  const res = await fetch(`/api/transactions/from-receipt`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -34,4 +34,11 @@ export async function createTransactionFromReceipt(
       ...data,
     }),
   });
+
+  const created = await res.json();
+
+  // ⭐ Koppel de bon aan de nieuwe transactie
+  await linkReceiptToTransaction(receiptId, created.id);
+
+  return created;
 }

@@ -7,6 +7,8 @@ import Layout from "./layout/Layout";
 import { ReceiptListPage } from "./features/receipts/extract/pages/ReceiptListPage";
 import ReceiptSettingsPage from "./features/receipts/extract/pages/ReceiptSettingPage";
 import TransactionSettingsPage from "./features/transactions/components/create/list/pages/TransactionSettingsPage";
+import { ReceiptArchivePage } from "./features/receipts/extract/pages/ReceiptArchivePage";
+
 export default function App() {
   return (
     <Routes>
@@ -21,6 +23,9 @@ export default function App() {
 
         {/* Receipt list */}
         <Route path="/receipts" element={<ReceiptListPage />} />
+
+        {/* Receipt archive */}
+        <Route path="/receipts/archive" element={<ReceiptArchivePage />} />
 
         {/* Receipt settings (correct path!) */}
         <Route path="/receipts/settings" element={<ReceiptSettingsPage />} />

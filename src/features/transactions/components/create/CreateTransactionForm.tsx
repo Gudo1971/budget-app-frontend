@@ -58,6 +58,14 @@ type Props = {
 export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
   const toast = useToast();
 
+  // Duplicate flow state
+  const [duplicateTransactionId, setDuplicateTransactionId] = useState<
+    number | null
+  >(null);
+  const [duplicateTransaction, setDuplicateTransaction] = useState<any>(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+
+  // Form state
   const [form, setForm] = useState<CreateTransactionFromReceiptInput>({
     amount: extracted.total ?? 0,
     date: extracted.date ?? "",
@@ -73,6 +81,7 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  // Categories
   const [categories, setCategories] = useState<
     { id: number; name: string; type: string }[]
   >([]);
@@ -103,6 +112,127 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
     }
   }, [extracted]);
 
+  // -----------------------------
+  // Fetch transaction details
+  // -----------------------------
+  async function fetchTransaction(id: number) {
+    const res = await fetch(`/api/transactions/${id}`);
+    const tx = await res.json();
+    setDuplicateTransaction(tx);
+  }
+
+  // -----------------------------
+  // Link existing transaction
+  // -----------------------------
+  async function handleLinkExisting() {
+    if (!duplicateTransactionId) return;
+
+    try {
+      const res = await fetch(`/api/receipts/${receipt.id}/link-existing`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transactionId: duplicateTransactionId }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        toast({
+          title: "Bon gekoppeld",
+          description: "De bon is gekoppeld aan de bestaande transactie.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        setShowDuplicateModal(false);
+        onClose?.();
+      }
+    } catch (err) {
+      console.error("Failed to link existing transaction", err);
+      toast({
+        title: "Fout bij koppelen",
+        description: "Kon de bon niet koppelen aan de transactie.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    }
+  }
+
+  // -----------------------------
+  // Submit handler
+  // -----------------------------
+  async function handleSubmit() {
+    try {
+      const res = await fetch(`/api/receipts/${receipt.id}/create-or-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          extracted,
+          userChoice: undefined, // eerste call
+        }),
+      });
+
+      const data = await res.json();
+
+      // CASE A — AI match → vraag gebruiker
+      if (data.action === "ask-user") {
+        setDuplicateTransactionId(data.match.id);
+        fetchTransaction(data.match.id);
+        setShowDuplicateModal(true);
+        return;
+      }
+
+      // CASE D — duplicate via duplicate-check
+      if (data.action === "duplicate") {
+        setDuplicateTransactionId(data.transactionId);
+        fetchTransaction(data.transactionId);
+        setShowDuplicateModal(true);
+        return;
+      }
+
+      // CASE B — gekoppeld aan bestaande transactie
+      if (data.action === "linked-existing") {
+        toast({
+          title: "Bon gekoppeld",
+          description: "De bon is gekoppeld aan een bestaande transactie.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+        onClose?.();
+        return;
+      }
+
+      // CASE D — nieuwe transactie aangemaakt
+      if (data.action === "created-new") {
+        toast({
+          title: "Nieuwe transactie aangemaakt",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        if (form.merchant && form.category_id) {
+          saveMerchantMemory(form.merchant, form.category_id);
+        }
+
+        onClose?.();
+        return;
+      }
+    } catch (err) {
+      console.error("Failed to save transaction", err);
+      toast({
+        title: "Netwerkfout",
+        description: "Kan geen verbinding maken met de server.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    }
+  }
+
   return (
     <VStack
       align="stretch"
@@ -113,6 +243,7 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
       color="white"
       boxShadow="md"
     >
+      {/* Form fields */}
       <Box>
         <FormLabel color="gray.400">Bedrag</FormLabel>
         <Input
@@ -180,80 +311,67 @@ export function CreateTransactionForm({ receipt, extracted, onClose }: Props) {
         </Select>
       </Box>
 
-      <Button
-        colorScheme="green"
-        size="md"
-        mt={2}
-        onClick={async () => {
-          try {
-            // ⭐ ALWAYS NEGATIVE AMOUNT
-            const rawAmount = form.amount ?? extracted.total ?? 0;
-            const amount = -Math.abs(rawAmount);
-
-            const res = await fetch("/api/transactions/from-extracted", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                receiptId: receipt.id,
-                extracted,
-                form: {
-                  ...form,
-                  amount, // ⭐ OVERRIDDEN HERE
-                  description: form.description || form.merchant,
-                },
-              }),
-            });
-
-            if (res.status === 409) {
-              toast({
-                title: "Transactie bestaat al",
-                description: "Deze bon is al eerder opgeslagen.",
-                status: "warning",
-                duration: 4000,
-                isClosable: true,
-              });
-
-              onClose?.();
-              return;
-            }
-
-            if (!res.ok) {
-              toast({
-                title: "Fout bij opslaan",
-                description: "Er ging iets mis tijdens het opslaan.",
-                status: "error",
-                duration: 4000,
-                isClosable: true,
-              });
-              return;
-            }
-
-            toast({
-              title: "Transactie opgeslagen",
-              status: "success",
-              duration: 3000,
-              isClosable: true,
-            });
-
-            if (form.merchant && form.category_id) {
-              saveMerchantMemory(form.merchant, form.category_id);
-            }
-
-            onClose?.();
-          } catch (err) {
-            console.error("Failed to save transaction", err);
-            toast({
-              title: "Netwerkfout",
-              description: "Kan geen verbinding maken met de server.",
-              status: "error",
-              duration: 4000,
-              isClosable: true,
-            });
-          }
-        }}
-      >
+      {/* Submit button */}
+      <Button colorScheme="green" size="md" mt={2} onClick={handleSubmit}>
         Maak transactie aan
       </Button>
+
+      {/* Duplicate modal */}
+      {showDuplicateModal && (
+        <Box
+          position="fixed"
+          top="0"
+          left="0"
+          width="100vw"
+          height="100vh"
+          bg="blackAlpha.700"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          zIndex={9999}
+        >
+          <Box bg="gray.800" p={6} borderRadius="md" width="90%" maxW="400px">
+            <FormLabel color="gray.300" fontSize="lg" mb={4}>
+              Bestaande transactie gevonden
+            </FormLabel>
+
+            {duplicateTransaction && (
+              <VStack align="start" spacing={2} mb={4}>
+                <Box>
+                  <b>Merchant:</b> {duplicateTransaction.merchant}
+                </Box>
+                <Box>
+                  <b>Bedrag:</b> €
+                  {Math.abs(duplicateTransaction.amount).toFixed(2)}
+                </Box>
+                <Box>
+                  <b>Datum:</b> {duplicateTransaction.date}
+                </Box>
+              </VStack>
+            )}
+
+            <Box mb={4}>Wil je deze bon koppelen aan deze transactie?</Box>
+
+            <VStack spacing={3}>
+              <Button
+                colorScheme="blue"
+                width="100%"
+                onClick={handleLinkExisting}
+              >
+                Koppel bon
+              </Button>
+
+              <Button
+                variant="outline"
+                width="100%"
+                onClick={() => setShowDuplicateModal(false)}
+              >
+                Annuleer
+              </Button>
+            </VStack>
+          </Box>
+        </Box>
+      )}
     </VStack>
   );
 }

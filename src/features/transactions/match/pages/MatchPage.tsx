@@ -10,9 +10,11 @@ import { CreateTransactionForm } from "../../../transactions/components/create/C
 export function MatchPage({
   receipt,
   extracted,
+  onClose,
 }: {
   receipt: Receipt;
   extracted: ExtractedReceipt;
+  onClose: () => void;
 }) {
   if (!receipt || !receipt.id) {
     return <Text>Geen geldige bon gevonden.</Text>;
@@ -43,7 +45,11 @@ export function MatchPage({
         Nieuwe transactie aanmaken
       </Heading>
 
-      <CreateTransactionForm receipt={receipt} extracted={extracted} />
+      <CreateTransactionForm
+        receipt={receipt}
+        extracted={extracted}
+        onClose={onClose} // ⭐ doorgeven aan CreateTransactionForm
+      />
     </Box>
   );
 }
