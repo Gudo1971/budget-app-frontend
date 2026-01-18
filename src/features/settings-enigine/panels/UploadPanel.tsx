@@ -53,64 +53,77 @@ export function UploadPanel({ closePreview }: { closePreview?: () => void }) {
 
     setIsUploading(true);
 
-    const formData = new FormData();
+    const uploadedReceipts: any[] = [];
+
     for (const f of files) {
-      formData.append("files", f.file);
-    }
+      const formData = new FormData();
+      formData.append("file", f.file);
 
-    const res = await fetch("/api/receipts/upload", {
-      method: "POST",
-      body: formData,
-    });
+      const res = await fetch("/api/receipts/upload/smart", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        toast({
+          title: "Upload mislukt",
+          description: `Kon ${f.file.name} niet uploaden.`,
+          status: "error",
+        });
+        continue;
+      }
+
+      const data = await res.json();
+
+      // --- DUPLICATE ---
+      if (data.action === "duplicate") {
+        toast({
+          title: "Dubbele bon",
+          description: data.summary,
+          status: "info",
+        });
+
+        uploadedReceipts.push({
+          id: data.duplicate.receiptId,
+          thumbnailUrl: `/api/receipts/${data.duplicate.receiptId}/file`,
+          date: data.duplicate.date ?? null,
+        });
+
+        continue;
+      }
+
+      // --- CREATED ---
+      if (data.action === "created") {
+        const r = data.receipt;
+
+        uploadedReceipts.push({
+          id: r.id,
+          thumbnailUrl: `/api/receipts/${r.id}/file`,
+          date: r.uploaded_at,
+        });
+
+        continue;
+      }
+    }
 
     setIsUploading(false);
 
-    if (!res.ok) {
-      toast({
-        title: "Upload mislukt",
-        description: "Probeer het opnieuw.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
+    // Update global store
+    setReceipts(uploadedReceipts);
 
-    const data = await res.json();
-
-    const mapped = data.receipts.map((r: any) => ({
-      id: r.id,
-      thumbnailUrl: `/api/receipts/${r.id}/file`,
-      date: r.uploaded_at,
-    }));
-
-    setReceipts(mapped);
-
-    toast({
-      title: "Bonnen geüpload",
-      description: "De bonnen zijn succesvol verwerkt.",
-      status: "success",
-      duration: 2500,
-      isClosable: true,
-    });
-
-    closePreview?.();
-
-    if (files.length === 1) {
-      const newReceipt = mapped[mapped.length - 1];
-
+    // UX: bij 1 upload → direct naar detail
+    if (uploadedReceipts.length === 1) {
       navigate(`/receipts`, {
-        state: { autoAnalyze: true, receiptId: newReceipt.id },
+        state: {
+          autoAnalyze: true,
+          receiptId: uploadedReceipts[0].id,
+        },
       });
-
-      return;
+    } else {
+      navigate("/receipts");
     }
 
-    navigate("/receipts");
-
-    // Reset UI
     setFiles([]);
-    setIsUploading(false);
   };
 
   const dropzoneBg = useColorModeValue("gray.50", "gray.800");

@@ -1,9 +1,9 @@
-export interface MatchCandidate {
-  id: number;
-  amount: number;
-  date: string;
-  merchant: string | null;
-}
+import { Transaction } from "./transactionTypes";
+export type MatchResponse = {
+  duplicate: Transaction | null;
+  aiMatch: Transaction | null;
+  candidates: Transaction[];
+};
 
 export type CreateTransactionFromReceiptInput = {
   amount: number;
