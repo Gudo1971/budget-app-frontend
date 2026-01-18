@@ -1,4 +1,4 @@
-import { Box, HStack, VStack, Text, IconButton } from "@chakra-ui/react";
+import { Box, HStack, VStack, Text, IconButton, Badge } from "@chakra-ui/react";
 import { DeleteIcon, DownloadIcon } from "@chakra-ui/icons";
 
 export type Receipt = {
@@ -6,6 +6,7 @@ export type Receipt = {
   filename: string;
   original_name: string;
   uploaded_at: string;
+  status: "pending" | "linked" | "archived"; // ← status toevoegen
 };
 
 export function ReceiptCard({
@@ -54,9 +55,21 @@ export function ReceiptCard({
 
         {/* Info */}
         <VStack align="start" spacing={1} flex="1" ml={3}>
-          <Text fontWeight="bold" color="white">
-            {receipt.original_name}
-          </Text>
+          <HStack spacing={2}>
+            <Text fontWeight="bold" color="white">
+              {receipt.original_name}
+            </Text>
+
+            {/* STATUS BADGES */}
+            {receipt.status === "pending" && (
+              <Badge colorScheme="yellow">In afwachting</Badge>
+            )}
+
+            {receipt.status === "linked" && (
+              <Badge colorScheme="green">Gekoppeld</Badge>
+            )}
+          </HStack>
+
           <Text fontSize="sm" color="gray.400">
             Geüpload op {new Date(receipt.uploaded_at).toLocaleString()}
           </Text>

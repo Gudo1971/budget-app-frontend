@@ -2,13 +2,18 @@ import { useState } from "react";
 import { Box, Spinner, Text, HStack, Button } from "@chakra-ui/react";
 
 import { Receipt, ExtractedReceipt } from "../types/extractTypes";
-
 import { analyzeReceipt } from "../services/extractService";
 
 import { ReceiptImage } from "./ReceiptImage";
 import { ReceiptExtractModal } from "./ReceiptExtractModal";
 
-export function ReceiptPreviewPanel({ receipt }: { receipt: Receipt }) {
+export function ReceiptPreviewPanel({
+  receipt,
+  onClose,
+}: {
+  receipt: Receipt;
+  onClose: () => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [extracted, setExtracted] = useState<ExtractedReceipt | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -41,7 +46,10 @@ export function ReceiptPreviewPanel({ receipt }: { receipt: Receipt }) {
       {extracted && (
         <ReceiptExtractModal
           isOpen={isModalOpen}
-          onClose={() => setModalOpen(false)}
+          onClose={() => {
+            setModalOpen(false);
+            onClose(); // ⭐ trigger refresh in ReceiptListPage
+          }}
           extracted={extracted}
           receipt={receipt}
         />

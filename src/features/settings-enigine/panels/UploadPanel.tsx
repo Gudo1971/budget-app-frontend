@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -7,10 +7,11 @@ import {
   HStack,
   IconButton,
   Progress,
-  Tooltip,
   useColorModeValue,
+  useToast,
 } from "@chakra-ui/react";
 import { FiX } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import { useReceiptStore } from "../../../stores/receiptStore";
 
 type UploadingFile = {
@@ -19,11 +20,14 @@ type UploadingFile = {
   status: "pending" | "uploading" | "done" | "error";
 };
 
-export function UploadPanel() {
+export function UploadPanel({ closePreview }: { closePreview?: () => void }) {
   const [files, setFiles] = useState<UploadingFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const setReceipts = useReceiptStore((s) => s.setReceipts);
+
+  const toast = useToast();
+  const navigate = useNavigate();
 
   const addFiles = (incoming: File[]) => {
     setFiles((prev) => {
@@ -44,102 +48,89 @@ export function UploadPanel() {
     setFiles((prev) => prev.filter((f) => f.file.name !== name));
   };
 
-  const uploadSingleFile = (uploadingFile: UploadingFile): Promise<void> => {
-    return new Promise((resolve) => {
-      const xhr = new XMLHttpRequest();
-      const formData = new FormData();
-      formData.append("files", uploadingFile.file);
-
-      xhr.open("POST", "/api/receipts/upload");
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100);
-
-          setFiles((prev) =>
-            prev.map((f) =>
-              f.file.name === uploadingFile.file.name
-                ? { ...f, progress: percent, status: "uploading" }
-                : f
-            )
-          );
-        }
-      };
-
-      xhr.onload = () => {
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.file.name === uploadingFile.file.name
-              ? { ...f, progress: 100, status: "done" }
-              : f
-          )
-        );
-        resolve();
-      };
-
-      xhr.onerror = () => {
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.file.name === uploadingFile.file.name
-              ? { ...f, status: "error" }
-              : f
-          )
-        );
-        resolve();
-      };
-
-      xhr.send(formData);
-    });
-  };
-
   const handleUpload = async () => {
     if (files.length === 0) return;
 
     setIsUploading(true);
 
-    const formData = new FormData();
+    const uploadedReceipts: any[] = [];
+
     for (const f of files) {
-      formData.append("files", f.file);
+      const formData = new FormData();
+      formData.append("file", f.file);
+
+      const res = await fetch("/api/receipts/upload/smart", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        toast({
+          title: "Upload mislukt",
+          description: `Kon ${f.file.name} niet uploaden.`,
+          status: "error",
+        });
+        continue;
+      }
+
+      const data = await res.json();
+
+      // --- DUPLICATE ---
+      if (data.action === "duplicate") {
+        toast({
+          title: "Dubbele bon",
+          description: data.summary,
+          status: "info",
+        });
+
+        uploadedReceipts.push({
+          id: data.duplicate.receiptId,
+          thumbnailUrl: `/api/receipts/${data.duplicate.receiptId}/file`,
+          date: data.duplicate.date ?? null,
+        });
+
+        continue;
+      }
+
+      // --- CREATED ---
+      if (data.action === "created") {
+        const r = data.receipt;
+
+        uploadedReceipts.push({
+          id: r.id,
+          thumbnailUrl: `/api/receipts/${r.id}/file`,
+          date: r.uploaded_at,
+        });
+
+        continue;
+      }
     }
 
-    // ⭐ BELANGRIJK: gebruik jouw echte backend URL
-    const res = await fetch("/api/receipts/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!res.ok) {
-      console.error("Upload failed");
-      setIsUploading(false);
-      return;
-    }
-
-    const data = await res.json();
-
-    // ⭐ Backend geeft ALLE bonnen van deze user terug
-    const mapped = data.receipts.map((r: any) => ({
-      id: r.id,
-      thumbnailUrl: `/api/receipts/${r.id}/file`,
-      date: r.uploaded_at,
-    }));
-
-    // ⭐ Zet ALLE bonnen in de store
-    setReceipts(mapped);
-
-    // UI reset
-    setFiles([]);
     setIsUploading(false);
-  };
 
-  const allUploadsDone =
-    files.length > 0 && files.every((f) => f.status === "done");
+    // Update global store
+    setReceipts(uploadedReceipts);
+
+    // UX: bij 1 upload → direct naar detail
+    if (uploadedReceipts.length === 1) {
+      navigate(`/receipts`, {
+        state: {
+          autoAnalyze: true,
+          receiptId: uploadedReceipts[0].id,
+        },
+      });
+    } else {
+      navigate("/receipts");
+    }
+
+    setFiles([]);
+  };
 
   const dropzoneBg = useColorModeValue("gray.50", "gray.800");
   const itemBg = useColorModeValue("gray.100", "gray.700");
 
   return (
     <VStack align="stretch" spacing={4}>
-      {/* DROPZONE */}
       <Box
         border="2px dashed"
         borderColor={useColorModeValue("blue.300", "blue.500")}
@@ -183,7 +174,6 @@ export function UploadPanel() {
         />
       </Box>
 
-      {/* BESTANDEN LIJST */}
       {files.length > 0 && (
         <Box>
           <HStack justify="space-between" mb={2}>
