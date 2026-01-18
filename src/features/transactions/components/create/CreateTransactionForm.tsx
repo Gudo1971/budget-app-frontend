@@ -14,6 +14,7 @@ import {
   Receipt,
 } from "../../../receipts/extract/types/extractTypes";
 import { NewCategoryModal } from "./NewCategoryModal";
+import { normalizeCategory as normalizeCategoryUtil } from "./mapping/categoryMap";
 
 type Props = {
   receipt: Receipt;
@@ -23,22 +24,6 @@ type Props = {
 };
 
 type Category = { id: number; name: string };
-
-// 🇳🇱 Normalisatie naar Nederlandse categorieën
-const CATEGORY_MAP: Record<string, string> = {
-  Dining: "Eten & Drinken",
-  Restaurant: "Restaurant",
-  Café: "Café",
-  Groceries: "Boodschappen",
-  Supermarket: "Boodschappen",
-  Transportation: "Vervoer",
-  Electronics: "Elektronica",
-};
-
-function normalizeCategory(cat?: string) {
-  if (!cat) return "";
-  return CATEGORY_MAP[cat] ?? cat;
-}
 
 export function CreateTransactionForm({
   receipt,
@@ -51,11 +36,16 @@ export function CreateTransactionForm({
 
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // ⭐ Automatische categorie: Restaurant > Food & Drink > ""
+  const initialCategory = normalizeCategoryUtil(
+    extracted.merchant_category ?? extracted.category ?? "",
+  );
+
   const [form, setForm] = useState({
     amount: extracted.total ?? 0,
     date: extracted.date ?? "",
     merchant: extracted.merchant ?? "",
-    category: normalizeCategory(extracted.category),
+    category: initialCategory,
     subcategory: extracted.subcategory ?? "",
     description: extracted.merchant ?? "",
   });
@@ -67,18 +57,21 @@ export function CreateTransactionForm({
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  // ⭐ De enige useEffect die nodig is
-  // Eerst DB-categorieën laden → daarna AI-categorieën toevoegen → alles normaliseren
+  console.log(
+    "RAW AI CATEGORY:",
+    extracted.category,
+    extracted.merchant_category,
+  );
+
+  // ⭐ Laad DB-categorieën → voeg AI-categorie toe → normaliseer
   useEffect(() => {
     fetch(`/api/categories?userId=${userId}`)
       .then((res) => res.json())
       .then((data: Category[]) => {
         const names = data.map((c) => c.name);
 
-        const aiCat = normalizeCategory(extracted.category ?? undefined);
-
-        const aiMerchantCat = normalizeCategory(
-          extracted.merchant_category ?? undefined,
+        const aiCat = normalizeCategoryUtil(
+          extracted.merchant_category ?? extracted.category ?? undefined,
         );
 
         const extra: Category[] = [];
@@ -87,13 +80,8 @@ export function CreateTransactionForm({
           extra.push({ id: -1, name: aiCat });
         }
 
-        if (aiMerchantCat && !names.includes(aiMerchantCat)) {
-          extra.push({ id: -2, name: aiMerchantCat });
-        }
-
         setCategories([...data, ...extra]);
 
-        // Zorg dat form.category ook de genormaliseerde waarde heeft
         if (aiCat) update("category", aiCat);
       })
       .catch((err) => console.error("Failed to load categories", err));
