@@ -1,0 +1,100 @@
+import { Box, Input, Select, FormLabel, VStack } from "@chakra-ui/react";
+
+type Props = {
+  form: {
+    amount: number;
+    date: string;
+    merchant: string;
+    description: string;
+    category: string;
+    subcategory: string;
+  };
+  update: <K extends keyof Props["form"]>(
+    key: K,
+    value: Props["form"][K],
+  ) => void;
+  categories: Array<{ id: number; name: string }>;
+  onOpen: () => void; // open new category modal
+};
+
+export function TransactionFormFields({
+  form,
+  update,
+  categories,
+  onOpen,
+}: Props) {
+  return (
+    <VStack align="stretch" spacing={4}>
+      <Box>
+        <FormLabel color="gray.400">Bedrag</FormLabel>
+        <Input
+          bg="gray.800"
+          color="white"
+          borderColor="gray.700"
+          type="number"
+          value={form.amount}
+          onChange={(e) => update("amount", parseFloat(e.target.value))}
+        />
+      </Box>
+
+      <Box>
+        <FormLabel color="gray.400">Datum</FormLabel>
+        <Input
+          bg="gray.800"
+          color="white"
+          borderColor="gray.700"
+          type="date"
+          value={form.date}
+          onChange={(e) => update("date", e.target.value)}
+        />
+      </Box>
+
+      <Box>
+        <FormLabel color="gray.400">Winkel</FormLabel>
+        <Input
+          bg="gray.800"
+          color="white"
+          borderColor="gray.700"
+          value={form.merchant}
+          onChange={(e) => update("merchant", e.target.value)}
+        />
+      </Box>
+
+      <Box>
+        <FormLabel color="gray.400">Omschrijving</FormLabel>
+        <Input
+          bg="gray.800"
+          color="white"
+          borderColor="gray.700"
+          value={form.description}
+          onChange={(e) => update("description", e.target.value)}
+        />
+      </Box>
+
+      <Box>
+        <FormLabel color="gray.400">Categorie</FormLabel>
+        <Select
+          bg="gray.800"
+          color="white"
+          borderColor="gray.700"
+          value={form.category}
+          onChange={(e) => {
+            if (e.target.value === "__new__") {
+              onOpen();
+              return;
+            }
+            update("category", e.target.value);
+          }}
+        >
+          <option value="">Selecteer categorie</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.name}>
+              {c.name}
+            </option>
+          ))}
+          <option value="__new__">+ Nieuwe categorie toevoegen</option>
+        </Select>
+      </Box>
+    </VStack>
+  );
+}
