@@ -30,7 +30,7 @@ export function ReceiptExtractModal({
   receipt: Receipt;
 }) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" trapFocus={false}>
       <ModalOverlay />
       <ModalContent bg="gray.800" color="white">
         <ModalHeader>Bon analyse</ModalHeader>

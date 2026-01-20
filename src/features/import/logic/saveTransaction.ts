@@ -1,15 +1,13 @@
 export async function saveTransaction(tx: any) {
   const payload = {
-    source: "csv",
-    receiptId: tx.receiptId ?? null,
-    extracted: {},
-    form: {
-      amount: tx.amount,
-      date: tx.date,
-      merchant: tx.merchant,
-      description: tx.description,
-      category_id: tx.categoryId ?? null,
-    },
+    amount: tx.amount,
+    date: tx.date ?? "",
+    merchant: tx.merchant,
+    description: tx.description ?? tx.merchant,
+    category: tx.category ?? "Overige",
+    subcategory: tx.subcategory ?? "",
+    receiptId: null,
+    userId: "demo-user",
   };
 
   const res = await fetch("http://localhost:3001/api/transactions", {
@@ -18,7 +16,9 @@ export async function saveTransaction(tx: any) {
     body: JSON.stringify(payload),
   });
 
-  // ⭐ WACHT op volledige backend-flow
-  const json = await res.json();
-  return json;
+  if (!res.ok) {
+    throw new Error("Failed to save CSV transaction");
+  }
+
+  return res.json();
 }
