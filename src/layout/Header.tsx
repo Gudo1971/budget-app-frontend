@@ -14,8 +14,18 @@ import {
   useTheme,
   Show,
   Hide,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Button,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from "@chakra-ui/react";
-import { HamburgerIcon } from "@chakra-ui/icons";
+import { HamburgerIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { Link, useLocation } from "react-router-dom";
 import { LanguageToggle } from "../components/i18n/LanguageToggle";
 import { ColorModeToggle } from "../components/ui/ColorModeToggle";
@@ -28,7 +38,13 @@ export function Header() {
 
   const isDashboard = location.pathname === "/";
   const isTransactions = location.pathname === "/transactions";
-  const isReceipts = location.pathname === "/receipts";
+
+  // Desktop: alles onder /receipts is actief
+  const isReceipts = location.pathname.startsWith("/receipts");
+
+  // Mobile: onderscheid tussen overzicht en archief
+  const isReceiptsOverview = location.pathname === "/receipts";
+  const isReceiptsArchive = location.pathname === "/receipts/archive";
 
   const text =
     colorMode === "light" ? theme.colors.light.text : theme.colors.dark.text;
@@ -86,18 +102,30 @@ export function Header() {
             >
               Transacties
             </Link>
-            {/* Receipts */}
-            <Link
-              to="/receipts"
-              style={{
-                pointerEvents: isReceipts ? "none" : "auto",
-                opacity: isReceipts ? 0.5 : 1,
-                fontWeight: isReceipts ? "bold" : "normal",
-                cursor: isReceipts ? "default" : "pointer",
-              }}
-            >
-              Bonnen
-            </Link>
+
+            {/* Receipts Dropdown */}
+            <Menu>
+              <MenuButton
+                as={Button}
+                variant="ghost"
+                rightIcon={<ChevronDownIcon />}
+                color={text}
+                _hover={{ bg: "transparent", opacity: 0.8 }}
+                fontWeight={isReceipts ? "bold" : "normal"}
+              >
+                Bonnen
+              </MenuButton>
+
+              <MenuList bg={surface} borderColor={border}>
+                <MenuItem as={Link} to="/receipts">
+                  Overzicht
+                </MenuItem>
+
+                <MenuItem as={Link} to="/receipts/archive">
+                  Archief
+                </MenuItem>
+              </MenuList>
+            </Menu>
 
             <ColorModeToggle />
             <LanguageToggle />
@@ -151,17 +179,60 @@ export function Header() {
               >
                 Transacties
               </Link>
-              <Link
-                to="/receipts"
-                style={{
-                  pointerEvents: isReceipts ? "none" : "auto",
-                  opacity: isReceipts ? 0.5 : 1,
-                  fontWeight: isReceipts ? "bold" : "normal",
-                  cursor: isReceipts ? "default" : "pointer",
-                }}
-              >
-                Bonnen
-              </Link>
+
+              {/* Bonnen dropdown (mobile) */}
+              <Accordion allowToggle w="full">
+                <AccordionItem border="none">
+                  <AccordionButton px={0}>
+                    <Box
+                      flex="1"
+                      textAlign="left"
+                      fontWeight={
+                        isReceiptsOverview || isReceiptsArchive
+                          ? "bold"
+                          : "normal"
+                      }
+                    >
+                      Bonnen
+                    </Box>
+                    <AccordionIcon />
+                  </AccordionButton>
+
+                  <AccordionPanel pb={2} pl={4}>
+                    <VStack align="start" spacing={2}>
+                      <Link
+                        to="/receipts"
+                        onClick={() => {
+                          if (!isReceiptsOverview) onClose();
+                        }}
+                        style={{
+                          pointerEvents: isReceiptsOverview ? "none" : "auto",
+                          opacity: isReceiptsOverview ? 0.5 : 1,
+                          fontWeight: isReceiptsOverview ? "bold" : "normal",
+                          cursor: isReceiptsOverview ? "default" : "pointer",
+                        }}
+                      >
+                        Overzicht
+                      </Link>
+
+                      <Link
+                        to="/receipts/archive"
+                        onClick={() => {
+                          if (!isReceiptsArchive) onClose();
+                        }}
+                        style={{
+                          pointerEvents: isReceiptsArchive ? "none" : "auto",
+                          opacity: isReceiptsArchive ? 0.5 : 1,
+                          fontWeight: isReceiptsArchive ? "bold" : "normal",
+                          cursor: isReceiptsArchive ? "default" : "pointer",
+                        }}
+                      >
+                        Archief
+                      </Link>
+                    </VStack>
+                  </AccordionPanel>
+                </AccordionItem>
+              </Accordion>
 
               <ColorModeToggle />
               <LanguageToggle />

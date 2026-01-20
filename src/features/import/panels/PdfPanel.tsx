@@ -1,5 +1,5 @@
 // ===============================
-// PdfPnel.tsx (previewpanel)
+// PdfPanel.tsx (gecorrigeerd)
 // ===============================
 
 import { useState } from "react";
@@ -18,7 +18,7 @@ export function PdfPanel({ onClose }: { onClose?: () => void }) {
   const navigate = useNavigate();
 
   // ===============================
-  // Stap 1: CSV inlezen + duplicate check
+  // Stap 1: PDF inlezen + duplicate check
   // ===============================
   async function handlePdfLoaded(rows: any[]) {
     const mapped = rows.map(mapPdfRowToTransaction);
@@ -31,13 +31,12 @@ export function PdfPanel({ onClose }: { onClose?: () => void }) {
     if (filtered.length === 0) {
       toast({
         title: "Geen nieuwe transacties",
-        description: "Alle transacties in deze pdf zijn al bekend.",
+        description: "Alle transacties in deze PDF zijn al bekend.",
         status: "info",
         duration: 3000,
         isClosable: true,
       });
 
-      // Panel mag direct sluiten als je dat wilt
       if (onClose) onClose();
     }
   }
@@ -48,21 +47,46 @@ export function PdfPanel({ onClose }: { onClose?: () => void }) {
   async function handleImport() {
     setImporting(true);
 
-    for (const tx of preview) {
-      await saveTransaction(tx);
+    try {
+      console.log(`⏳ Starting import of ${preview.length} transactions...`);
+      const startTime = Date.now();
+
+      // ⭐ Wacht op ALLE saves
+      await Promise.all(preview.map((tx) => saveTransaction(tx)));
+
+      const elapsed = Date.now() - startTime;
+      console.log(
+        `✅ All ${preview.length} transactions saved in ${elapsed}ms`,
+      );
+
+      toast({
+        title: `${preview.length} transacties geïmporteerd`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      if (onClose) onClose();
+
+      // ⭐ Verhoogde delay: wacht op database sync
+      const refreshDelay = Math.max(1000, elapsed + 500);
+      console.log(`⏱️ Navigating in ${refreshDelay}ms...`);
+
+      setTimeout(() => {
+        navigate("/transactions?refresh=" + Date.now());
+      }, refreshDelay);
+    } catch (error) {
+      console.error("❌ Import error:", error);
+      toast({
+        title: "Fout bij importeren",
+        description: String(error),
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setImporting(false);
     }
-
-    setImporting(false);
-
-    toast({
-      title: `${preview.length} transacties geïmporteerd`,
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-
-    if (onClose) onClose();
-    navigate("/transactions");
   }
 
   return (
@@ -75,7 +99,6 @@ export function PdfPanel({ onClose }: { onClose?: () => void }) {
         onData={(rows) => {
           console.log("PDF LOADED!", rows);
           console.log("PDF ROW EXAMPLE:", rows[0]);
-
           handlePdfLoaded(rows);
         }}
       />

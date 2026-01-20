@@ -7,7 +7,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { Transaction } from "../../../../types/transactions";
+import { Transaction } from "../../../../../../types/transactions";
 
 type AddTransactionModalProps = {
   onAdd: (tx: Transaction) => void;
