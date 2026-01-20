@@ -56,7 +56,8 @@ export function mapCsvRowToTransaction(row: any) {
   return {
     amount: normalizeSignedAmount(row["Bedrag"], isIncome),
     date: row["Datum"],
-    merchant: row["Naam tegenpartij"] || "Onbekend",
+    merchant: row["Naam tegenpartij"] || row["Omschrijving"] || "Onbekend",
+
     description,
     categoryId: autoCategory(description),
     userId: "demo-user",

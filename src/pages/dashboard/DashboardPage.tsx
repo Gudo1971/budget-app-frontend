@@ -46,10 +46,8 @@ export default function DashboardPage() {
   const uiTransactions = transactions.map((t) => ({
     ...t,
     id: String(t.id),
-    category:
-      typeof t.category === "object" && t.category !== null
-        ? t.category.name?.trim() || "Onbekend"
-        : "Onbekend",
+    category: t.category ?? "Onbekend",
+    subcategory: t.subcategory ?? null,
   }));
 
   // ⭐ Categorie-totalen (name-based)
@@ -119,22 +117,22 @@ export default function DashboardPage() {
   const weeksRemainingRounded = Math.ceil(remainingDays / 7);
 
   const remainingInsight = `Je hebt nog €${remainingBudget.toFixed(
-    0
+    0,
   )} over voor ${remainingDays} dagen.`;
 
   const dailyInsight = `Dat is ongeveer €${dailyAllowance.toFixed(0)} per dag.`;
 
   const weeklyInsight = `Met nog ${weeksRemainingRounded} weken te gaan komt dat neer op ongeveer €${weeklyAllowance.toFixed(
-    0
+    0,
   )} per week.`;
 
   const spentPercentage = budget > 0 ? (total / budget) * 100 : 0;
   const remainingPercentage = 100 - spentPercentage;
 
   const percentageInsight = `Je hebt ${spentPercentage.toFixed(
-    0
+    0,
   )}% van je budget uitgegeven. Er is nog ${remainingPercentage.toFixed(
-    0
+    0,
   )}% over.`;
 
   const stressColorMap = {

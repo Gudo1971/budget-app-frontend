@@ -2,7 +2,7 @@ export async function saveTransaction(tx: any) {
   const payload = {
     source: "csv",
     receiptId: tx.receiptId ?? null,
-    extracted: {}, // CSV gebruikt extracted niet
+    extracted: {},
     form: {
       amount: tx.amount,
       date: tx.date,
@@ -12,9 +12,13 @@ export async function saveTransaction(tx: any) {
     },
   };
 
-  await fetch("http://localhost:3001/api/transactions", {
+  const res = await fetch("http://localhost:3001/api/transactions", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+
+  // ⭐ WACHT op volledige backend-flow
+  const json = await res.json();
+  return json;
 }

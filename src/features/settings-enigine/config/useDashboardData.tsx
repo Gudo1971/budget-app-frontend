@@ -7,7 +7,7 @@ export function useDashboardData() {
   const uiTransactions = transactions.map((t) => ({
     ...t,
     id: String(t.id),
-    category: t.category?.name?.toLowerCase().trim() || "onbekend",
+    category: t.category?.toLowerCase().trim() || "onbekend",
   }));
 
   const categories = uiTransactions.reduce<Record<string, number>>((acc, t) => {
@@ -29,12 +29,12 @@ export function useDashboardData() {
   const FIXED_COST_CATEGORY_IDS = ["wonen", "abonnementen", "zorg"];
 
   const fixedCostTransactions = uiTransactions.filter((t) =>
-    FIXED_COST_CATEGORY_IDS.includes(t.category)
+    FIXED_COST_CATEGORY_IDS.includes(t.category),
   );
 
   const fixedCosts = fixedCostTransactions.reduce(
     (sum, t) => sum + Math.abs(Number(t.amount)),
-    0
+    0,
   );
 
   const fixedCostBreakdown = fixedCostTransactions.map((t) => ({
@@ -44,7 +44,7 @@ export function useDashboardData() {
 
   const spent = uiTransactions.reduce(
     (sum, t) => sum + Math.abs(Number(t.amount) || 0),
-    0
+    0,
   );
 
   const budget = 1500;
@@ -54,7 +54,7 @@ export function useDashboardData() {
   const daysInPeriod = new Date(
     today.getFullYear(),
     today.getMonth() + 1,
-    0
+    0,
   ).getDate();
 
   const stressPercentage = Math.round(
@@ -64,7 +64,7 @@ export function useDashboardData() {
       daysPassed,
       daysInPeriod,
       fixedCosts,
-    }) * 100
+    }) * 100,
   );
 
   return {
