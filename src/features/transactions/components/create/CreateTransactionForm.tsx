@@ -4,7 +4,10 @@ import {
   ExtractedReceipt,
   Receipt,
 } from "../../../receipts/extract/types/extractTypes";
-import { normalizeCategory as normalizeCategoryUtil } from "./mapping/categoryMap";
+import {
+  normalizeCategory as normalizeCategoryUtil,
+  normalizeMerchant,
+} from "./mapping/categoryMap";
 import { NewCategoryModal } from "./NewCategoryModal";
 import { TransactionFormFields } from "./TransactionFormFields";
 import { DuplicateMatchModal } from "./DuplicateMatchModal";
@@ -40,10 +43,10 @@ export function CreateTransactionForm({
   const [form, setForm] = useState({
     amount: -(extracted.total ?? 0),
     date: extracted.date ?? "",
-    merchant: extracted.merchant ?? "",
+    merchant: normalizeMerchant(extracted.merchant ?? ""), // ← Nu genormaliseerd
     category: initialCategory,
     subcategory: extracted.subcategory ?? "",
-    description: extracted.merchant ?? "",
+    description: normalizeMerchant(extracted.merchant ?? ""), // ← Nu genormaliseerd
   });
 
   function update<K extends keyof typeof form>(

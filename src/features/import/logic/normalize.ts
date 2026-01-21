@@ -1,11 +1,15 @@
 // logic/normalize.ts
+import { ImportedTransaction } from "@shared/types/ImportedTransaction";
 import { NormalizedTransaction } from "../components/types/NormalizedTransaction";
+import { cleanMerchant } from "../../../../../backend/src/utils/cleanMerchant";
 
-export function normalize(tx: NormalizedTransaction): NormalizedTransaction {
+export function normalize(tx: ImportedTransaction): NormalizedTransaction {
+  const raw = tx.merchant_raw ?? tx.merchant ?? "";
+
   return {
-    ...tx,
     amount: Number(tx.amount.toFixed(2)),
-    merchant: tx.merchant.toLowerCase().trim().replace(/\s+/g, " "),
-    description: tx.description.toLowerCase().trim().replace(/\s+/g, " "),
+    merchant: cleanMerchant(raw),
+    description: tx.description?.trim().replace(/\s+/g, " ") ?? "",
+    date: tx.date,
   };
 }

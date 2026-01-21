@@ -13,7 +13,7 @@ import {
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Transaction } from "../../../../../shared/types/Transaction";
+import { Transaction } from "@shared/types/Transaction";
 
 export function TransactionCard({ transaction }: { transaction: Transaction }) {
   const navigate = useNavigate();
@@ -25,6 +25,12 @@ export function TransactionCard({ transaction }: { transaction: Transaction }) {
 
   const ai = transaction.receipt?.aiResult ?? null;
   const hasDetailsToShow = !!ai || !!transaction.receipt?.thumbnailUrl;
+
+  const merchantLabel = transaction.merchant;
+
+  const dateLabel = transaction.transaction_date ?? transaction.date;
+  const categoryLabel =
+    transaction.subcategory ?? transaction.category ?? "Onbekend";
 
   return (
     <Box
@@ -53,49 +59,48 @@ export function TransactionCard({ transaction }: { transaction: Transaction }) {
       <HStack justify="space-between" align="flex-start" spacing={4}>
         {/* LEFT SIDE */}
         <VStack align="start" spacing={1}>
-          <HStack spacing={2}>
-            <Text fontSize="sm" fontWeight="medium" color="gray.300">
+          {/* Merchant */}
+          <Text
+            fontSize="sm"
+            fontWeight="medium"
+            color="gray.700"
+            _dark={{ color: "gray.200" }}
+          >
+            {merchantLabel}
+          </Text>
+
+          {/* Description */}
+          {transaction.description && (
+            <Text fontSize="xs" color="gray.500">
               {transaction.description}
-            </Text>
-
-            {transaction.recurring && (
-              <Badge
-                fontSize="0.6rem"
-                colorScheme="purple"
-                borderRadius="full"
-                px={2}
-              >
-                Terugkerend
-              </Badge>
-            )}
-          </HStack>
-
-          {transaction.merchant && (
-            <Text
-              fontSize="sm"
-              fontWeight="medium"
-              color="gray.700"
-              _dark={{ color: "gray.200" }}
-            >
-              {transaction.merchant}
             </Text>
           )}
 
-          {/* ⭐ Tooltip op categorie */}
+          {/* Category */}
           <Tooltip
             label="Automatische suggestie, controleer altijd zelf"
             openDelay={300}
           >
             <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
-              {transaction.category ?? "Onbekend"}{" "}
-              {transaction.subcategory ? ` • ${transaction.subcategory}` : ""}
+              {categoryLabel}
             </Text>
           </Tooltip>
 
-          {transaction.date && (
-            <Text fontSize="xs" color="gray.400">
-              {transaction.date}
-            </Text>
+          {/* Date */}
+          <Text fontSize="xs" color="gray.400">
+            {dateLabel}
+          </Text>
+
+          {/* Recurring */}
+          {transaction.recurring && (
+            <Badge
+              fontSize="0.6rem"
+              colorScheme="purple"
+              borderRadius="full"
+              px={2}
+            >
+              Terugkerend
+            </Badge>
           )}
         </VStack>
 
@@ -132,7 +137,6 @@ export function TransactionCard({ transaction }: { transaction: Transaction }) {
             </Tooltip>
           )}
 
-          {/* ⭐ Tooltip op chevron */}
           {hasDetailsToShow && (
             <Tooltip label="Toon bon en details" openDelay={300}>
               <ChevronDownIcon
@@ -218,7 +222,6 @@ export function TransactionCard({ transaction }: { transaction: Transaction }) {
                 </VStack>
               )}
 
-              {/* ⭐ Subtiele disclaimer */}
               <Text fontSize="xs" color="gray.400" mt={2}>
                 Automatische suggesties, controleer altijd zelf.
               </Text>

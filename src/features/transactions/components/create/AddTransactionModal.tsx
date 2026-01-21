@@ -7,7 +7,8 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { Transaction } from "../../../../../../types/transactions";
+import { Transaction } from "@shared/types/Transaction";
+import { cleanMerchant } from "../../../../../../backend/src/utils/cleanMerchant";
 
 type AddTransactionModalProps = {
   onAdd: (tx: Transaction) => void;
@@ -27,13 +28,24 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
     if (!description || !amount || !category || !merchant || !date) return;
 
     const newTx: Transaction = {
-      id: Date.now().toString(),
+      id: Date.now(), // number, niet string
+      date, // bankdatum
+      transaction_date: date, // aankoopdatum = zelfde bij handmatig
+
       description,
       amount: parseFloat(amount),
-      category,
-      merchant,
+
+      merchant: cleanMerchant(merchant), // nette UI-naam
+      merchant_raw: merchant, // ruwe input
+
+      category, // leesbaar label
+      category_id: null,
+      subcategory: null,
+      subcategory_id: null,
+
       recurring,
-      date,
+
+      receipt_id: null, // handmatige transacties hebben geen bon
     };
 
     onAdd(newTx);
@@ -74,9 +86,7 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
                 <Text mb={1}>Beschrijving</Text>
                 <Input
                   value={description}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setDescription(e.target.value)
-                  }
+                  onChange={(e) => setDescription(e.target.value)}
                 />
               </Box>
 
@@ -86,9 +96,7 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
                 <Input
                   type="number"
                   value={amount}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setAmount(e.target.value)
-                  }
+                  onChange={(e) => setAmount(e.target.value)}
                 />
               </Box>
 
@@ -97,9 +105,7 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
                 <Text mb={1}>Categorie</Text>
                 <select
                   value={category}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                    setCategory(e.target.value)
-                  }
+                  onChange={(e) => setCategory(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "8px",
@@ -120,9 +126,7 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
                 <Text mb={1}>Merchant</Text>
                 <Input
                   value={merchant}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setMerchant(e.target.value)
-                  }
+                  onChange={(e) => setMerchant(e.target.value)}
                 />
               </Box>
 
@@ -132,9 +136,7 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
                 <Input
                   type="date"
                   value={date}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setDate(e.target.value)
-                  }
+                  onChange={(e) => setDate(e.target.value)}
                 />
               </Box>
 
