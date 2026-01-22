@@ -6,8 +6,8 @@ type Props = {
     date: string;
     merchant: string;
     description: string;
-    category: string;
-    subcategory: string;
+    category_id: number | null;
+    subcategory_id: number | null;
   };
   update: <K extends keyof Props["form"]>(
     key: K,
@@ -77,21 +77,23 @@ export function TransactionFormFields({
           bg="gray.800"
           color="white"
           borderColor="gray.700"
-          value={form.category}
+          value={form.category_id ?? ""}
           onChange={(e) => {
             if (e.target.value === "__new__") {
               onOpen();
               return;
             }
-            update("category", e.target.value);
+            update("category_id", Number(e.target.value));
           }}
         >
           <option value="">Selecteer categorie</option>
+
           {categories.map((c) => (
-            <option key={c.id} value={c.name}>
+            <option key={c.id} value={c.id}>
               {c.name}
             </option>
           ))}
+
           <option value="__new__">+ Nieuwe categorie toevoegen</option>
         </Select>
       </Box>

@@ -7,9 +7,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@shared": path.resolve(__dirname, "../shared"),
     },
   },
   server: {
+    fs: {
+      allow: [".."], // ⭐ hiermee mag je buiten /frontend importeren
+    },
     proxy: {
       "/api": {
         target: "http://localhost:3001",

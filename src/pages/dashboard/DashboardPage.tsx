@@ -32,6 +32,9 @@ import {
 // Hooks
 import { useTransactions } from "@/features/transactions/shared/hooks/useTransactions";
 
+// Category helpers
+import { getCategoryName } from "@shared/constants/categories";
+
 export default function DashboardPage() {
   const { colorMode } = useColorMode();
   const navigate = useNavigate();
@@ -42,21 +45,19 @@ export default function DashboardPage() {
   // ⭐ Backend transacties
   const { data: transactions = [] } = useTransactions();
 
-  // ⭐ Normalisatie + fallback (name-based)
+  // ⭐ ID-based transaction normalization
   const uiTransactions = transactions.map((t) => ({
     ...t,
     id: String(t.id),
-    category: t.category ?? "Onbekend",
-    subcategory: t.subcategory ?? null,
   }));
 
-  // ⭐ Categorie-totalen (name-based)
+  // ⭐ Categorie-totalen (ID-based)
   const categories = uiTransactions.reduce<Record<string, number>>((acc, t) => {
-    const cat = t.category;
+    const catName = getCategoryName(t.category_id);
     const amount = Math.abs(Number(t.amount));
 
-    if (!acc[cat]) acc[cat] = 0;
-    acc[cat] += amount;
+    if (!acc[catName]) acc[catName] = 0;
+    acc[catName] += amount;
 
     return acc;
   }, {});
@@ -73,11 +74,11 @@ export default function DashboardPage() {
   const entries = Object.entries(categories) as [string, number][];
   const sorted = [...entries].sort((a, b) => b[1] - a[1]);
 
-  // ⭐ Vaste lasten op basis van name-based categorieën
-  const FIXED_COST_CATEGORY_NAMES = ["Wonen", "Abonnementen", "Zorg"];
+  // ⭐ Vaste lasten (ID-based)
+  const FIXED_COST_CATEGORY_IDS = [7, 6]; // Woonkosten, Abonnementen
 
   const fixedCosts = uiTransactions
-    .filter((t) => FIXED_COST_CATEGORY_NAMES.includes(t.category))
+    .filter((t) => FIXED_COST_CATEGORY_IDS.includes(t.category_id ?? 0))
     .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
 
   // ⭐ Stress (ratio 0–1)
@@ -156,11 +157,12 @@ export default function DashboardPage() {
 
   const dynamic = getDynamicInsight(activeCard);
 
-  // ⭐ Category stats (name-based)
+  // ⭐ Category stats (ID-based)
   const categoryStats = sorted.map(([name, amount]) => ({
     name,
     amount,
-    count: uiTransactions.filter((t) => t.category === name).length,
+    count: uiTransactions.filter((t) => getCategoryName(t.category_id) === name)
+      .length,
   }));
 
   return (

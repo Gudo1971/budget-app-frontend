@@ -4,11 +4,12 @@ import { DonutChart } from "../../../components/charts/DonutChart";
 import { SectionHeader } from "../../../components/ui/SectionHeader";
 import { generateRealisticInsight } from "../../../lib/ai/realisticInsights";
 import { SubSectionHeader } from "../../../components/ui/SubSectionHeader";
+import { getCategoryName } from "@shared/constants/categories";
 
 export type TransactionAnalysisCardProps = {
   total: number;
   categories: Record<string, number>;
-  transactions: { category: string }[];
+  transactions: { category_id: number | null }[];
   stressScore: number;
   sortedCategories: [string, number][];
   budget: number;
@@ -18,7 +19,7 @@ export type TransactionAnalysisCardProps = {
 };
 
 export const TransactionAnalysisCard = (
-  props: TransactionAnalysisCardProps
+  props: TransactionAnalysisCardProps,
 ) => {
   const {
     total,

@@ -7,7 +7,18 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { Transaction } from "../../../../../../types/transactions";
+import { Transaction } from "@shared/types/Transaction";
+
+const CATEGORY_LABELS: Record<number, string> = {
+  1: "Boodschappen",
+  2: "Horeca",
+  3: "Persoonlijke verzorging",
+  4: "Vervoer",
+  5: "Gezondheid",
+  6: "Abonnementen",
+  7: "Woonkosten",
+  8: "Overig",
+};
 
 type AddTransactionModalProps = {
   onAdd: (tx: Transaction) => void;
@@ -18,22 +29,30 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
 
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
   const [merchant, setMerchant] = useState("");
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [recurring, setRecurring] = useState(false);
   const [date, setDate] = useState("");
 
   const handleSubmit = () => {
-    if (!description || !amount || !category || !merchant || !date) return;
+    if (!description || !amount || !merchant || !date || !categoryId) return;
 
     const newTx: Transaction = {
-      id: Date.now().toString(),
+      id: Date.now(),
+      date,
+      transaction_date: date,
       description,
       amount: parseFloat(amount),
-      category,
-      merchant,
+
+      merchant_raw: merchant,
+      merchant: merchant.trim(),
+
+      category_id: categoryId,
+
+      subcategory_id: null,
+
       recurring,
-      date,
+      receipt_id: null,
     };
 
     onAdd(newTx);
@@ -69,37 +88,28 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
             </Text>
 
             <VStack gap={4}>
-              {/* Beschrijving */}
               <Box w="100%">
                 <Text mb={1}>Beschrijving</Text>
                 <Input
                   value={description}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setDescription(e.target.value)
-                  }
+                  onChange={(e) => setDescription(e.target.value)}
                 />
               </Box>
 
-              {/* Bedrag */}
               <Box w="100%">
                 <Text mb={1}>Bedrag</Text>
                 <Input
                   type="number"
                   value={amount}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setAmount(e.target.value)
-                  }
+                  onChange={(e) => setAmount(e.target.value)}
                 />
               </Box>
 
-              {/* Categorie */}
               <Box w="100%">
                 <Text mb={1}>Categorie</Text>
                 <select
-                  value={category}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                    setCategory(e.target.value)
-                  }
+                  value={categoryId ?? ""}
+                  onChange={(e) => setCategoryId(Number(e.target.value))}
                   style={{
                     width: "100%",
                     padding: "8px",
@@ -108,37 +118,31 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
                   }}
                 >
                   <option value="">Selecteer categorie</option>
-                  <option value="Boodschappen">Boodschappen</option>
-                  <option value="Vervoer">Vervoer</option>
-                  <option value="Abonnementen">Abonnementen</option>
-                  <option value="Uit eten">Uit eten</option>
+                  {Object.entries(CATEGORY_LABELS).map(([id, label]) => (
+                    <option key={id} value={id}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
               </Box>
 
-              {/* Merchant */}
               <Box w="100%">
                 <Text mb={1}>Merchant</Text>
                 <Input
                   value={merchant}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setMerchant(e.target.value)
-                  }
+                  onChange={(e) => setMerchant(e.target.value)}
                 />
               </Box>
 
-              {/* Datum */}
               <Box w="100%">
                 <Text mb={1}>Datum</Text>
                 <Input
                   type="date"
                   value={date}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setDate(e.target.value)
-                  }
+                  onChange={(e) => setDate(e.target.value)}
                 />
               </Box>
 
-              {/* Recurring */}
               <Box
                 w="100%"
                 display="flex"
@@ -156,7 +160,6 @@ export function AddTransactionModal({ onAdd }: AddTransactionModalProps) {
               </Box>
             </VStack>
 
-            {/* Footer */}
             <Box mt={6} display="flex" justifyContent="flex-end" gap={3}>
               <Button onClick={onClose}>Annuleren</Button>
               <Button colorScheme="blue" onClick={handleSubmit}>

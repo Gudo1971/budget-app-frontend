@@ -1,5 +1,5 @@
 // logic/parsers/parseRabobank.ts
-import { NormalizedTransaction } from "../../components/types/NormalizedTransaction";
+import { NormalizedTransaction } from "@shared/types/NormalizedTransaction";
 import { detectIncome } from "../detectIncome";
 export function parseRabobankRow(row: any): NormalizedTransaction {
   const description = [
@@ -21,6 +21,7 @@ export function parseRabobankRow(row: any): NormalizedTransaction {
     date: row["Datum"],
     amount: finalAmount,
     merchant: row["Naam tegenpartij"] || "onbekend",
+    merchant_raw: row["Naam tegenpartij"] || "onbekend",
     description,
   };
 }

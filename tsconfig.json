@@ -15,13 +15,13 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-
     "types": ["vite/client"],
 
-    "baseUrl": ".",
+    "baseUrl": ".", // ⭐ belangrijk
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"], // ⭐ nu correct
+      "@shared/*": ["../shared/*"]
     }
   },
-  "include": ["src", "backup/CsvPanel.tsx", "../shared "]
+  "include": ["src", "../shared"]
 }

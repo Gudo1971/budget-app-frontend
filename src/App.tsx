@@ -8,6 +8,7 @@ import { ReceiptListPage } from "./features/receipts/extract/pages/ReceiptListPa
 import ReceiptSettingsPage from "./features/receipts/extract/pages/ReceiptSettingPage";
 import TransactionSettingsPage from "./features/transactions/components/create/list/pages/TransactionSettingsPage";
 import { ReceiptArchivePage } from "./features/receipts/extract/pages/ReceiptArchivePage";
+import MerchantMemoryDebug from "./pages/debug/MerchantMemoryDebug";
 
 export default function App() {
   return (
@@ -32,6 +33,12 @@ export default function App() {
 
         {/* Split transactions */}
         <Route path="/split/:id" element={<SplitPage />} />
+
+        {/* Debug pages */}
+        <Route
+          path="/debug/merchant-memory"
+          element={<MerchantMemoryDebug />}
+        />
       </Route>
     </Routes>
   );

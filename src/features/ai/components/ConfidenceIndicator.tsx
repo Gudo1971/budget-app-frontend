@@ -1,17 +1,18 @@
-import { Box, Text, HStack, VStack } from "@chakra-ui/react"
-import { LuSparkles } from "react-icons/lu"
-import { t } from "../../i18n/i18n"
+import { Box, Text, HStack, VStack } from "@chakra-ui/react";
+import { LuSparkles } from "react-icons/lu";
+import { t } from "../../../i18n/i18n";
 
 export type AIConfidenceIndicatorProps = {
-  value?: number
-  label?: string
-}
+  value?: number;
+  label?: string;
+};
 
-export function AIConfidenceIndicator({ value, label }: AIConfidenceIndicatorProps) {
+export function AIConfidenceIndicator({
+  value,
+  label,
+}: AIConfidenceIndicatorProps) {
   const safeValue =
-    typeof value === "number" && !isNaN(value)
-      ? value * 100
-      : 0
+    typeof value === "number" && !isNaN(value) ? value * 100 : 0;
 
   return (
     <VStack align="start" gap={1} w="100%">
@@ -22,13 +23,7 @@ export function AIConfidenceIndicator({ value, label }: AIConfidenceIndicatorPro
         </Text>
       </HStack>
 
-      <Box
-        w="100%"
-        h="6px"
-        bg="gray.200"
-        borderRadius="4px"
-        overflow="hidden"
-      >
+      <Box w="100%" h="6px" bg="gray.200" borderRadius="4px" overflow="hidden">
         <Box
           h="100%"
           w={`${safeValue}%`}
@@ -37,5 +32,5 @@ export function AIConfidenceIndicator({ value, label }: AIConfidenceIndicatorPro
         />
       </Box>
     </VStack>
-  )
+  );
 }

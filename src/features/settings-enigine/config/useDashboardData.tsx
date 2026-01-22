@@ -1,5 +1,6 @@
 import { useTransactions } from "@/features/transactions/shared/hooks/useTransactions";
 import { calculateRealisticStress } from "@/lib/ai/realisticInsights";
+import { getCategoryName } from "@shared/constants/categories";
 
 export function useDashboardData() {
   const { data: transactions = [] } = useTransactions();
@@ -7,13 +8,12 @@ export function useDashboardData() {
   const uiTransactions = transactions.map((t) => ({
     ...t,
     id: String(t.id),
-    category: t.category?.toLowerCase().trim() || "onbekend",
   }));
 
   const categories = uiTransactions.reduce<Record<string, number>>((acc, t) => {
-    const cat = t.category;
+    const catName = getCategoryName(t.category_id);
     const amount = Math.abs(Number(t.amount));
-    acc[cat] = (acc[cat] || 0) + amount;
+    acc[catName] = (acc[catName] || 0) + amount;
     return acc;
   }, {});
 
@@ -23,13 +23,14 @@ export function useDashboardData() {
   const categoryStats = sorted.map(([name, amount]) => ({
     name,
     amount,
-    count: uiTransactions.filter((t) => t.category === name).length,
+    count: uiTransactions.filter((t) => getCategoryName(t.category_id) === name)
+      .length,
   }));
 
-  const FIXED_COST_CATEGORY_IDS = ["wonen", "abonnementen", "zorg"];
+  const FIXED_COST_CATEGORY_IDS = [7, 6]; // Woonkosten, Abonnementen (IDs)
 
   const fixedCostTransactions = uiTransactions.filter((t) =>
-    FIXED_COST_CATEGORY_IDS.includes(t.category),
+    FIXED_COST_CATEGORY_IDS.includes(t.category_id ?? 0),
   );
 
   const fixedCosts = fixedCostTransactions.reduce(
@@ -38,7 +39,7 @@ export function useDashboardData() {
   );
 
   const fixedCostBreakdown = fixedCostTransactions.map((t) => ({
-    name: t.category,
+    name: getCategoryName(t.category_id),
     amount: Math.abs(Number(t.amount)),
   }));
 

@@ -1,12 +1,12 @@
 import Papa from "papaparse";
 
-export type Transaction = {
+export type CsvRow = {
   date: string;
   description: string;
   amount: number;
 };
 
-export function parseCsv(file: File): Promise<Transaction[]> {
+export function parseCsv(file: File): Promise<CsvRow[]> {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,

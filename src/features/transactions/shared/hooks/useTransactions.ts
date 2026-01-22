@@ -1,50 +1,16 @@
 import { useState, useEffect } from "react";
 import { apiGet } from "../../../../lib/api/api";
-
-export type BackendTransaction = {
-  id: number;
-  description: string;
-  amount: number;
-  date: string;
-  merchant?: string;
-
-  category: string | null;
-  subcategory: string | null;
-
-  receipt_id: number | null;
-
-  recurring?: boolean;
-
-  receipt?: {
-    url: string;
-    thumbnail?: string;
-    aiResult?: {
-      merchant?: string;
-      amount?: number;
-      date?: string;
-      category?: string;
-      subcategory?: string;
-      recurring?: boolean;
-      total?: number;
-      items?: Array<{
-        name: string;
-        quantity?: number;
-        price?: number;
-        total?: number;
-      }>;
-    };
-  };
-};
+import type { Transaction } from "@shared/types/Transaction";
 
 type TransactionsResponse = {
   success: boolean;
-  data: BackendTransaction[];
+  data: Transaction[];
   error: string | null;
 };
 
 // ⭐ Hook accepteert refreshKey
 export function useTransactions(refreshKey?: string) {
-  const [data, setData] = useState<BackendTransaction[]>([]);
+  const [data, setData] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
