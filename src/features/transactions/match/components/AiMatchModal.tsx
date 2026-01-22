@@ -10,7 +10,7 @@ import {
   Box,
 } from "@chakra-ui/react";
 
-import { Transaction } from "../types/transactionTypes";
+import { Transaction } from "@shared/types/Transaction";
 
 export function AiMatchModal({
   transaction,

@@ -1,6 +1,5 @@
 import { Box, Button, VStack, Text, HStack } from "@chakra-ui/react";
-import { MatchCandidate } from "../types/matchTypes";
-
+import { MatchCandidate } from "@shared/types/matching";
 export function MatchCandidatesList({
   candidates,
   onSelect,

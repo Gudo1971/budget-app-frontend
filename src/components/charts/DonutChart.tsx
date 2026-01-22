@@ -8,11 +8,12 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getCategoryName, CATEGORY_MAP } from "@shared/constants/categories";
 
 type DonutChartProps = {
   total: number;
   categories: Record<string, number>;
-  transactions: { category: string }[];
+  transactions: { category_id: number | null }[];
   onReady?: () => void;
 };
 
@@ -35,15 +36,15 @@ export function DonutChart({
   const segmentColors = theme.colors.categories[colorMode];
   const trackColor = useColorModeValue(
     theme.colors.light.border,
-    theme.colors.dark.border
+    theme.colors.dark.border,
   );
   const centerValueColor = useColorModeValue(
     theme.colors.light.text,
-    theme.colors.dark.text
+    theme.colors.dark.text,
   );
   const centerLabelColor = useColorModeValue(
     theme.colors.light.textMuted,
-    theme.colors.dark.textMuted
+    theme.colors.dark.textMuted,
   );
 
   useEffect(() => {
@@ -69,8 +70,21 @@ export function DonutChart({
 
   const top = sorted[0];
   const pct = (top[1] / total) * 100;
-  const getTxCount = (categoryName: string) =>
-    transactions.filter((tx) => tx.category === categoryName).length;
+
+  // Map category names back to IDs for filtering transactions
+  const getCategoryIdByName = (categoryName: string): number | null => {
+    for (const [id, name] of Object.entries(CATEGORY_MAP)) {
+      if (name === categoryName) {
+        return parseInt(id);
+      }
+    }
+    return null;
+  };
+
+  const getTxCount = (categoryName: string) => {
+    const categoryId = getCategoryIdByName(categoryName);
+    return transactions.filter((tx) => tx.category_id === categoryId).length;
+  };
 
   let offset = 0;
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { apiGet } from "../lib/api";
-
+import { apiGet } from "@/lib/api/api";
 export type FixedCost = {
   id: number;
   name: string;

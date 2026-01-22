@@ -1,5 +1,5 @@
 // logic/parsers/parseIng.ts
-import { NormalizedTransaction } from "../../components/types/NormalizedTransaction";
+import { NormalizedTransaction } from "@shared/types/NormalizedTransaction";
 
 export function parseIngRow(row: any): NormalizedTransaction {
   const description = row["Naam/Omschrijving"];
@@ -12,6 +12,7 @@ export function parseIngRow(row: any): NormalizedTransaction {
     date: row["Datum"],
     amount: finalAmount,
     merchant: description,
+    merchant_raw: description,
     description,
   };
 }

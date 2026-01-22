@@ -8,9 +8,9 @@ type CreateFlowOptions = {
     amount: number;
     date: string;
     merchant: string;
-    category: string;
-    subcategory: string;
     description: string;
+    category_id: number | null;
+    subcategory_id: number | null;
   };
   onSuccess?: () => void;
   onDuplicateFound?: (match: any) => void;
@@ -45,7 +45,14 @@ export function useCreateTransactionFlow() {
 
   // ⭐ STEP 3 — Create new transaction (ONLY if no duplicate)
   async function createTransaction(
-    form: any,
+    form: {
+      amount: number;
+      date: string;
+      merchant: string;
+      description: string;
+      category_id: number | null;
+      subcategory_id: number | null;
+    },
     userId: string,
     receiptId: number,
   ) {
@@ -112,7 +119,6 @@ export function useCreateTransactionFlow() {
       }
 
       console.log("📌 [FLOW] No duplicate, creating new transaction...");
-      // 3. No duplicate → create new transaction
       await createTransaction(form, userId, receiptId);
 
       console.log("✅ [FLOW] Transaction created successfully");

@@ -17,19 +17,18 @@ export function DashboardTransactions() {
 
   const [search, setSearch] = useState("");
 
-  // ⭐ Echte backend transacties
+  // ⭐ Backend transacties
   const { data: transactions = [] } = useTransactions();
 
-  // ⭐ Fallback voor categorie + lowercase normalisatie
+  // ⭐ ID-based transaction normalization
   const uiTransactions = transactions.map((t) => ({
     ...t,
-    id: String(t.id), // ⭐ FIX: forceer id naar string
-    category: t.category?.name?.trim() || "Onbekend",
+    id: String(t.id),
   }));
 
   // ⭐ Zoeken
   const filtered = uiTransactions.filter((t) =>
-    t.description?.toLowerCase().includes(search.toLowerCase())
+    t.description?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { apiGet } from "../lib/api";
+import { apiGet } from "@/lib/api/api";
 
 export type Category = {
   id: number; // <-- FIXED

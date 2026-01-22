@@ -76,7 +76,7 @@ export default function DashboardInsightsPage() {
   const neonColor = "#00C8FF";
   const monitorGlow = useColorModeValue(
     "0 0 10px rgba(0, 120, 180, 0.7)",
-    "0 0 10px rgba(0, 200, 255, 0.7)"
+    "0 0 10px rgba(0, 200, 255, 0.7)",
   );
 
   const sectionToSlide: Record<CardKey, number> = {
@@ -95,14 +95,25 @@ export default function DashboardInsightsPage() {
             total={0}
             categories={{}}
             transactions={[]}
+            stressScore={0}
+            sortedCategories={[]}
+            budget={0}
+            spent={0}
+            daysPassed={0}
+            daysInPeriod={30}
           />
         );
+
       case "budget":
         return <BudgetProgressCard />;
+
       case "categories":
         return (
-          <CategoryStatsCard name="Boodschappen" amount={320} count={12} />
+          <CategoryStatsCard
+            stats={[{ name: "Boodschappen", amount: 320, count: 12 }]}
+          />
         );
+
       case "fixed":
         return (
           <VasteLastenCard
@@ -115,8 +126,10 @@ export default function DashboardInsightsPage() {
             onOpenOverview={() => {}}
           />
         );
+
       case "savings":
         return <SavingsGoalCard />;
+
       default:
         return null;
     }
@@ -222,9 +235,7 @@ function SortableHeader({
         borderRadius="md"
         bg={isOpen ? "whiteAlpha.100" : "transparent"}
       >
-        {/* LEFT SIDE: drag + monitor */}
         <HStack position="absolute" left={0} pl={1} spacing={3} align="center">
-          {/* Drag handle */}
           <Box
             fontSize="20px"
             opacity={0.6}
@@ -236,7 +247,6 @@ function SortableHeader({
             ⋮⋮
           </Box>
 
-          {/* Monitor button */}
           <Box
             as="button"
             onClick={onTogglePreview}
@@ -262,12 +272,10 @@ function SortableHeader({
           </Box>
         </HStack>
 
-        {/* CENTER: title */}
         <Text fontSize="lg" fontWeight="bold">
           {label}
         </Text>
 
-        {/* RIGHT: toggle */}
         <Box position="absolute" right={0} pr={2}>
           <Switch size="md" onChange={onToggleEnabled} isChecked />
         </Box>

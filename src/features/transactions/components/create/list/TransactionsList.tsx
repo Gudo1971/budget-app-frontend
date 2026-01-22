@@ -1,8 +1,9 @@
 import { VStack, Text } from "@chakra-ui/react";
 import { useTransactions } from "../../../shared/hooks/useTransactions";
-import type { BackendTransaction } from "../../../shared/hooks/useTransactions";
+import type { Transaction } from "@shared/types/Transaction";
 import { TransactionCard } from "../../../../dashboard/components/TransactionCard";
 import { useLocation } from "react-router-dom";
+import { mapBackendToTransaction } from "@/features/transactions/utils/mapBackendTransaction";
 
 export function TransactionsList() {
   const location = useLocation();
@@ -15,8 +16,11 @@ export function TransactionsList() {
 
   return (
     <VStack align="stretch" spacing={3}>
-      {transactions.map((t: BackendTransaction) => (
-        <TransactionCard key={t.id} transaction={t} />
+      {transactions.map((t: Transaction) => (
+        <TransactionCard
+          key={t.id}
+          transaction={mapBackendToTransaction(t)} // ⭐ FIX
+        />
       ))}
     </VStack>
   );

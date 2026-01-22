@@ -16,9 +16,10 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "types": ["vite/client"],
-    "baseUrl": ".",
+
+    "baseUrl": ".", // ⭐ belangrijk
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["src/*"], // ⭐ nu correct
       "@shared/*": ["../shared/*"]
     }
   },

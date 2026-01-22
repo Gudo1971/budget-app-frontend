@@ -13,7 +13,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { VStack, Box } from "@chakra-ui/react";
-import type { CardKey } from "@/pages/dashboard/DashboardInsights";
+import { CardKey } from "@/features/settings/components/CardSettingsPanel";
 
 type Props = {
   order: CardKey[];

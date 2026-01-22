@@ -4,10 +4,7 @@ import {
   ExtractedReceipt,
   Receipt,
 } from "../../../receipts/extract/types/extractTypes";
-import {
-  normalizeCategory as normalizeCategoryUtil,
-  normalizeMerchant,
-} from "./mapping/categoryMap";
+import { normalizeMerchant } from "@shared/services/normalizeMerchant";
 import { NewCategoryModal } from "./NewCategoryModal";
 import { TransactionFormFields } from "./TransactionFormFields";
 import { DuplicateMatchModal } from "./DuplicateMatchModal";
@@ -36,17 +33,14 @@ export function CreateTransactionForm({
   const [categories, setCategories] = useState<Category[]>([]);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
-  const initialCategory = normalizeCategoryUtil(
-    extracted.merchant_category ?? extracted.category ?? "",
-  );
-
+  // ⭐ ID-based form state
   const [form, setForm] = useState({
     amount: -(extracted.total ?? 0),
     date: extracted.date ?? "",
-    merchant: normalizeMerchant(extracted.merchant ?? ""), // ← Nu genormaliseerd
-    category: initialCategory,
-    subcategory: extracted.subcategory ?? "",
-    description: normalizeMerchant(extracted.merchant ?? ""), // ← Nu genormaliseerd
+    merchant: normalizeMerchant(extracted.merchant ?? "").display,
+    description: normalizeMerchant(extracted.merchant ?? "").display,
+    category_id: null as number | null,
+    subcategory_id: null as number | null,
   });
 
   function update<K extends keyof typeof form>(
@@ -56,30 +50,35 @@ export function CreateTransactionForm({
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  // ⭐ Categorieën laden
+  // ⭐ Load categories
   useEffect(() => {
     fetch(`http://localhost:3001/api/categories?userId=${userId}`)
       .then((res) => res.json())
       .then((data: Category[]) => {
-        const names = data.map((c) => c.name);
+        setCategories(data);
 
-        const aiCat = normalizeCategoryUtil(
-          extracted.merchant_category ?? extracted.category ?? undefined,
-        );
+        // ⭐ Direct ID-based matching (no string conversion needed)
+        const aiCategoryId = extracted.merchant_category ?? extracted.category;
 
-        const extra: Category[] = [];
-        if (aiCat && !names.includes(aiCat)) {
-          extra.push({ id: -1, name: aiCat });
+        if (aiCategoryId && typeof aiCategoryId === "number") {
+          // Find category by ID and auto-select
+          const match = data.find((c) => c.id === aiCategoryId);
+          if (match) {
+            console.log(
+              `✅ Auto-selecting category: ${match.name} (ID: ${match.id})`,
+            );
+            update("category_id", match.id);
+          } else {
+            console.warn(
+              `⚠️ Category ID ${aiCategoryId} not found in available categories`,
+            );
+          }
         }
-
-        setCategories([...data, ...extra]);
-
-        if (aiCat) update("category", aiCat);
       })
       .catch((err) => console.error("Failed to load categories", err));
   }, [userId, extracted.category, extracted.merchant_category]);
 
-  // ⭐ Submit → hook regelt alles
+  // ⭐ Submit
   function handleSubmit() {
     runCreateFlow({
       receiptId: receipt.id,
@@ -113,7 +112,7 @@ export function CreateTransactionForm({
     });
   }
 
-  // ⭐ Duplicate bevestigen
+  // ⭐ Confirm duplicate
   async function handleConfirmDuplicate() {
     try {
       await linkToExisting(receipt.id, matchResult.duplicate.id);
@@ -185,7 +184,7 @@ export function CreateTransactionForm({
         onClose={() => setIsCategoryModalOpen(false)}
         onCreated={(newCat: Category) => {
           setCategories((prev) => [...prev, newCat]);
-          update("category", newCat.name);
+          update("category_id", newCat.id);
         }}
       />
     </>

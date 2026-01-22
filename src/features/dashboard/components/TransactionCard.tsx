@@ -1,3 +1,5 @@
+// ⭐ FIXED VERSION — volledig typesafe
+
 import {
   Box,
   HStack,
@@ -14,6 +16,7 @@ import { ChevronDownIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Transaction } from "@shared/types/Transaction";
+import { getCategoryName } from "@shared/constants/categories";
 
 export function TransactionCard({ transaction }: { transaction: Transaction }) {
   const navigate = useNavigate();
@@ -27,10 +30,10 @@ export function TransactionCard({ transaction }: { transaction: Transaction }) {
   const hasDetailsToShow = !!ai || !!transaction.receipt?.thumbnailUrl;
 
   const merchantLabel = transaction.merchant;
-
   const dateLabel = transaction.transaction_date ?? transaction.date;
-  const categoryLabel =
-    transaction.subcategory ?? transaction.category ?? "Onbekend";
+
+  // ⭐ Correcte categorie-label (alleen via category_id)
+  const categoryLabel = getCategoryName(transaction.category_id);
 
   return (
     <Box
