@@ -1,19 +1,8 @@
-import {
-  Box,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  VStack,
-  Divider,
-} from "@chakra-ui/react";
+import { Box, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, VStack, Divider } from "@chakra-ui/react";
 
 import { Receipt } from "../../extract/types/extractTypes";
 import { ReceiptTotals } from "./ReceiptTotals";
 import { ReceiptItems } from "./ReceiptItems";
-import { MerchantCategorySelector } from "./MerchantCategorySelector";
 import { ReceiptMetadata } from "./ReceiptMetadata";
 import { MatchPage } from "@/features/transactions/match/pages/MatchPage";
 import { ExtractedReceipt } from "../../extract/types/extractTypes";
@@ -43,12 +32,6 @@ export function ReceiptExtractModal({
               <Divider />
 
               <ReceiptItems items={extracted.items ?? []} />
-              <Divider />
-
-              <MerchantCategorySelector
-                merchant={extracted.merchant || "Onbekend"}
-                onSelect={() => {}}
-              />
               <Divider />
 
               <ReceiptMetadata r={extracted} />

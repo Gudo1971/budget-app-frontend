@@ -59,10 +59,13 @@ export function UploadPanel({ closePreview }: { closePreview?: () => void }) {
       const formData = new FormData();
       formData.append("file", f.file);
 
-      const res = await fetch("/api/receipts/upload/smart", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        "http://localhost:3001/api/receipts/upload/smart",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       if (!res.ok) {
         toast({
@@ -85,7 +88,7 @@ export function UploadPanel({ closePreview }: { closePreview?: () => void }) {
 
         uploadedReceipts.push({
           id: data.duplicate.receiptId,
-          thumbnailUrl: `/api/receipts/${data.duplicate.receiptId}/file`,
+          thumbnailUrl: `http://localhost:3001/api/receipts/${data.duplicate.receiptId}/file`,
           date: data.duplicate.date ?? null,
         });
 
@@ -98,7 +101,7 @@ export function UploadPanel({ closePreview }: { closePreview?: () => void }) {
 
         uploadedReceipts.push({
           id: r.id,
-          thumbnailUrl: `/api/receipts/${r.id}/file`,
+          thumbnailUrl: `http://localhost:3001/api/receipts/${r.id}/file`,
           date: r.uploaded_at,
         });
 

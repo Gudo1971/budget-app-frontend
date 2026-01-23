@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { MerchantMemoryRecord } from "../../../../../shared/types/merchantMemory";
+import { MerchantMemoryRecord } from "@shared/types/merchantMemory";
+import { normalizeMerchant } from "@shared/services/normalizeMerchant";
 
 export function useMerchantMemory() {
   const [merchants, setMerchants] = useState<MerchantMemoryRecord[]>([]);
@@ -29,7 +30,7 @@ export function useMerchantMemory() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: m.user_id,
-          merchant: m.merchant,
+          merchant: m.key,
         }),
       });
 
@@ -37,6 +38,23 @@ export function useMerchantMemory() {
     },
     [load],
   );
+
+  // ⭐ NEW: Suggest category based on merchant memory
+  function suggestCategory(merchant: string) {
+    if (!merchant || merchants.length === 0) return null;
+
+    const normalized = normalizeMerchant(merchant).key.toLowerCase();
+
+    const record = merchants.find((m) => m.key.toLowerCase() === normalized);
+
+    if (!record) return null;
+
+    return {
+      category_id: record.category_id,
+      subcategory_id: null, // backend ondersteunt dit nog niet
+      confidence: record.confidence ?? 1,
+    };
+  }
 
   useEffect(() => {
     load();
@@ -48,5 +66,6 @@ export function useMerchantMemory() {
     error,
     reload: load,
     retrain,
+    suggestCategory, // ⭐ added
   };
 }

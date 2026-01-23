@@ -14,6 +14,11 @@ type Props = {
     value: Props["form"][K],
   ) => void;
   categories: Array<{ id: number; name: string }>;
+  memorySuggestion?: {
+    category_id: number;
+    subcategory_id: number | null;
+    confidence: number;
+  } | null;
   onOpen: () => void; // open new category modal
 };
 
@@ -21,8 +26,16 @@ export function TransactionFormFields({
   form,
   update,
   categories,
+  memorySuggestion,
   onOpen,
 }: Props) {
+  // ⭐ DEBUG: Log merchant changes
+  const handleMerchantChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    console.log("🛠️ [TransactionFormFields] Merchant changed to:", newValue);
+    update("merchant", newValue);
+  };
+
   return (
     <VStack align="stretch" spacing={4}>
       <Box>
@@ -56,7 +69,7 @@ export function TransactionFormFields({
           color="white"
           borderColor="gray.700"
           value={form.merchant}
-          onChange={(e) => update("merchant", e.target.value)}
+          onChange={handleMerchantChange}
         />
       </Box>
 
@@ -90,6 +103,7 @@ export function TransactionFormFields({
 
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
+              {memorySuggestion?.category_id === c.id ? "⭐ " : ""}
               {c.name}
             </option>
           ))}

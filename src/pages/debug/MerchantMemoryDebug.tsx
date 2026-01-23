@@ -81,11 +81,11 @@ export default function MerchantMemoryDebug() {
 
         <Tbody>
           {merchants
-            .filter((m) => m.merchant.includes(filter))
+            .filter((m) => m.display.includes(filter))
             .filter((m) => m.confidence <= confidence)
             .map((m) => (
-              <Tr key={m.merchant}>
-                <Td>{m.merchant}</Td>
+              <Tr key={m.key}>
+                <Td>{m.display}</Td>
                 <Td>{m.category_id}</Td>
                 <Td>
                   <Badge
