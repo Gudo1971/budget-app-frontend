@@ -5,6 +5,8 @@ export function ReceiptMetadata({ r }: { r: ExtractedReceipt }) {
   const ignore = [
     "merchant",
     "merchant_category",
+    "category",
+    "subcategory",
     "date",
     "total",
     "subtotal",

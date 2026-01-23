@@ -38,7 +38,7 @@ export default function MerchantDetailDrawer(props: Props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId: merchant.user_id,
-        merchant: merchant.merchant,
+        merchant: merchant.key,
       }),
     });
   }
@@ -57,7 +57,7 @@ export default function MerchantDetailDrawer(props: Props) {
                 Merchant
               </Text>
               <Text fontSize="lg" fontWeight="bold">
-                {merchant.merchant}
+                {merchant.display}
               </Text>
             </Box>
 
