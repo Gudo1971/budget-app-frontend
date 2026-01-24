@@ -17,7 +17,7 @@ export type ExtractedItem = {
 
 export type ExtractedReceipt = {
   merchant: string | null;
-  merchant_category?: string | null;
+  merchant_category?: number | null; // ✅ ID-based, not string
   date: string | null;
   total: number | null;
   subtotal?: number | null;

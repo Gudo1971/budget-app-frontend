@@ -138,7 +138,9 @@ export function useCreateTransactionFlow() {
         return;
       }
 
-      console.log("📌 [FLOW] No duplicate, creating new transaction with user-provided data...");
+      console.log(
+        "📌 [FLOW] No duplicate, creating new transaction with user-provided data...",
+      );
       const createResult = await createTransaction(form, userId, receiptId);
 
       if (createResult.isDuplicate) {

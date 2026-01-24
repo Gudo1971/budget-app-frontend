@@ -137,7 +137,6 @@ export function CreateTransactionForm({
     }
   }, [form.category_id, memorySuggestion]);
 
-
   // ⭐ Show AI suggestion as OPTION, but don't auto-apply
   useEffect(() => {
     if (!normalizedMerchant || userChangedCategory) {
@@ -150,7 +149,7 @@ export function CreateTransactionForm({
     // ⭐ FALLBACK: If no merchant memory, try AI categorization
     if (!suggestion && extracted.merchant_category) {
       suggestion = {
-        category_id: extracted.merchant_category,
+        category_id: extracted.merchant_category, // ✅ Already a number now
         subcategory_id: null,
         confidence: 0.6, // lower confidence for AI
       };
@@ -162,7 +161,12 @@ export function CreateTransactionForm({
       update("category_id", suggestion.category_id);
       update("subcategory_id", suggestion.subcategory_id ?? null);
     }
-  }, [normalizedMerchant, userChangedCategory, suggestCategory, extracted.merchant_category]);
+  }, [
+    normalizedMerchant,
+    userChangedCategory,
+    suggestCategory,
+    extracted.merchant_category,
+  ]);
 
   // ⭐ Submit
   function handleSubmit() {
@@ -170,7 +174,8 @@ export function CreateTransactionForm({
     if (!form.category_id) {
       toast({
         title: "Categorie verplicht",
-        description: "Selecteer alstublieft een categorie voordat u de transactie aanmaakt.",
+        description:
+          "Selecteer alstublieft een categorie voordat u de transactie aanmaakt.",
         status: "warning",
         duration: 3000,
         isClosable: true,

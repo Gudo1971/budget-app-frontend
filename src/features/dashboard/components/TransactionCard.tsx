@@ -17,7 +17,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Transaction } from "@shared/types/Transaction";
 import { getCategoryName } from "@shared/constants/categories";
-
+import { getSubcategoryName } from "@shared/constants/subcategories";
 export function TransactionCard({ transaction }: { transaction: Transaction }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -32,8 +32,14 @@ export function TransactionCard({ transaction }: { transaction: Transaction }) {
   const merchantLabel = transaction.merchant;
   const dateLabel = transaction.transaction_date ?? transaction.date;
 
-  // ⭐ Correcte categorie-label (alleen via category_id)
+  // ⭐ Correcte labels
   const categoryLabel = getCategoryName(transaction.category_id);
+  const subcategoryLabel = getSubcategoryName(transaction.subcategory_id);
+
+  // ⭐ Premium gecombineerde label
+  const combinedCategoryLabel = subcategoryLabel
+    ? `${categoryLabel} • ${subcategoryLabel}`
+    : categoryLabel;
 
   return (
     <Box
@@ -79,13 +85,13 @@ export function TransactionCard({ transaction }: { transaction: Transaction }) {
             </Text>
           )}
 
-          {/* Category */}
+          {/* Category + Subcategory */}
           <Tooltip
             label="Automatische suggestie, controleer altijd zelf"
             openDelay={300}
           >
             <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
-              {categoryLabel}
+              {combinedCategoryLabel}
             </Text>
           </Tooltip>
 

@@ -1,0 +1,420 @@
+import {
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  Box,
+  Flex,
+  Icon,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
+import { useState, useEffect } from "react";
+
+import { YearList } from "./components/YearList";
+import { MonthList } from "./components/MonthList";
+import { WeekList } from "./components/WeekList";
+import { DayList } from "./components/DayList";
+import { MultiSelectOverlay } from "./components/MultiSelectOverlay";
+import { getRangeForMonth, getRangeForWeek } from "../../utils/dateRanges";
+import { FunnelSettingsIcon } from "../funnel-settings/FunnelSettingsIcon";
+import type { PeriodSelectorProps } from "@shared/types/period";
+
+export function PeriodSelector({ onChange }: PeriodSelectorProps) {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(
+    currentMonth,
+  );
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+  // 🔥 Drie aparte multi-select states
+  const [multiYears, setMultiYears] = useState<(string | number)[]>([]);
+  const [multiMonths, setMultiMonths] = useState<(string | number)[]>([]);
+  const [multiWeeks, setMultiWeeks] = useState<(string | number)[]>([]);
+  const [multiDays, setMultiDays] = useState<(string | number)[]>([]);
+
+  const [multiMode, setMultiMode] = useState<
+    "year" | "month" | "week" | "day" | null
+  >(null);
+  const [selectedWeekForDayFilter, setSelectedWeekForDayFilter] = useState<
+    number | null
+  >(null);
+
+  const iconColor = useColorModeValue("gray.600", "gray.300");
+  
+  // Alle color mode values voor de Box container
+  const containerBg = useColorModeValue("gray.100", "gray.800");
+  const containerBorder = useColorModeValue("gray.300", "gray.600");
+  
+  // Color mode values voor multi-select highlighting
+  const multiBg = useColorModeValue("blue.100", "blue.700");
+  const multiBgHover = useColorModeValue("blue.200", "blue.600");
+  const normalHover = useColorModeValue("gray.200", "gray.700");
+
+  // Helper functies voor labels
+  const getMonthsLabel = () => {
+    if (multiMonths.length > 0) {
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mrt",
+        "Apr",
+        "Mei",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Dec",
+      ];
+      const names = multiMonths
+        .map((m) => monthNames[Number(m) - 1])
+        .join(", ");
+      return `Maanden: ${names}`;
+    }
+    if (selectedMonth) {
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mrt",
+        "Apr",
+        "Mei",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Dec",
+      ];
+      return `Maand: ${monthNames[selectedMonth - 1]}`;
+    }
+    return `Maand: Alle`;
+  };
+
+  const getDaysLabel = () => {
+    if (multiDays.length > 0) {
+      const dayNames = ["Zo", "Ma", "Di", "Wo", "Do", "Vr", "Za"];
+      const names = multiDays.map((d) => dayNames[Number(d)]).join(", ");
+      return `Dagen: ${names}`;
+    }
+    if (selectedDay !== null) {
+      const dayNames = [
+        "Zondag",
+        "Maandag",
+        "Dinsdag",
+        "Woensdag",
+        "Donderdag",
+        "Vrijdag",
+        "Zaterdag",
+      ];
+      return `Dag: ${dayNames[selectedDay]}`;
+    }
+    return `Dag: Alle`;
+  };
+
+  // 🔥 Stuur initiële selectie door bij mount
+  useEffect(() => {
+    if (selectedMonth !== null) {
+      const range = getRangeForMonth(selectedYear, selectedMonth);
+      onChange({
+        type: "month",
+        year: selectedYear,
+        month: selectedMonth,
+        from: range.from,
+        to: range.to,
+      });
+    }
+  }, []); // Alleen bij mount
+
+  // 🔥 Helper: juiste multi-array ophalen
+  const getActiveMulti = (): (string | number)[] => {
+    if (multiMode === "year") return multiYears;
+    if (multiMode === "month") return multiMonths;
+    if (multiMode === "week") return multiWeeks;
+    if (multiMode === "day") return multiDays;
+    return [];
+  };
+
+  // 🔥 Helper: juiste setter gebruiken op basis van multiMode
+  const handleApply = (values: (string | number)[]) => {
+    if (multiMode === "year") {
+      setMultiYears(values);
+    } else if (multiMode === "month") {
+      setMultiMonths(values);
+    } else if (multiMode === "week") {
+      setMultiWeeks(values);
+    } else if (multiMode === "day") {
+      setMultiDays(values);
+    }
+
+    onChange({
+      type: multiMode!,
+      [multiMode! + "s"]: values,
+    });
+    setMultiMode(null);
+  };
+
+  return (
+    <Box
+      borderWidth="1px"
+      borderRadius="md"
+      p={3}
+      position="relative"
+      bg={containerBg}
+      borderColor={containerBorder}
+    >
+      <Accordion allowMultiple defaultIndex={[]}>
+        {/* YEAR LEVEL */}
+        <AccordionItem>
+          <AccordionButton
+            bg={multiYears.length > 0 ? multiBg : undefined}
+            _hover={{
+              bg: multiYears.length > 0 ? multiBgHover : normalHover,
+            }}
+            _expanded={{
+              bg: multiYears.length > 0 ? multiBgHover : normalHover,
+            }}
+          >
+            <Flex flex="1" textAlign="left" fontWeight="bold">
+              {multiYears.length > 0
+                ? `Jaren: ${multiYears.join(", ")}`
+                : `Jaar: ${selectedYear}`}
+            </Flex>
+
+            <Box
+              as="span"
+              cursor="pointer"
+              p={1}
+              onClick={(e: React.MouseEvent<HTMLSpanElement>) => {
+                e.stopPropagation();
+                // Pre-selecteer het huidige jaar als multi-select leeg is
+                if (multiYears.length === 0) {
+                  setMultiYears([selectedYear]);
+                }
+                setMultiMode("year");
+              }}
+            >
+              <Icon as={FunnelSettingsIcon} boxSize={4} color={iconColor} />
+            </Box>
+
+            <ChevronDownIcon color={iconColor} />
+          </AccordionButton>
+
+          <AccordionPanel>
+            <YearList
+              selectedYear={selectedYear}
+              multiSelected={multiYears}
+              onSelect={(year) => {
+                setSelectedYear(year);
+                setSelectedWeek(null);
+                onChange({
+                  type: "year",
+                  year,
+                  from: `${year}-01-01`,
+                  to: `${year}-12-31`,
+                });
+              }}
+            />
+          </AccordionPanel>
+        </AccordionItem>
+
+        {/* MONTH LEVEL */}
+        <AccordionItem>
+          <AccordionButton
+            bg={multiMonths.length > 0 ? multiBg : undefined}
+            _hover={{
+              bg: multiMonths.length > 0 ? multiBgHover : normalHover,
+            }}
+            _expanded={{
+              bg: multiMonths.length > 0 ? multiBgHover : normalHover,
+            }}
+          >
+            <Flex flex="1" textAlign="left" fontWeight="bold">
+              {getMonthsLabel()}
+            </Flex>
+
+            <Box
+              as="span"
+              cursor="pointer"
+              p={1}
+              onClick={(e: React.MouseEvent<HTMLSpanElement>) => {
+                e.stopPropagation();
+                // Pre-selecteer de huidige maand als multi-select leeg is
+                if (multiMonths.length === 0 && selectedMonth) {
+                  setMultiMonths([selectedMonth]);
+                }
+                setMultiMode("month");
+              }}
+            >
+              <Icon as={FunnelSettingsIcon} boxSize={4} color={iconColor} />
+            </Box>
+
+            <ChevronDownIcon color={iconColor} />
+          </AccordionButton>
+
+          <AccordionPanel>
+            <MonthList
+              year={selectedYear}
+              selectedMonth={selectedMonth}
+              multiSelected={multiMonths}
+              onSelect={(month) => {
+                setSelectedMonth(month);
+                setSelectedWeek(null);
+                const range = getRangeForMonth(selectedYear, month);
+                onChange({
+                  type: "month",
+                  year: selectedYear,
+                  month,
+                  from: range.from,
+                  to: range.to,
+                });
+              }}
+            />
+          </AccordionPanel>
+        </AccordionItem>
+
+        {/* WEEK LEVEL */}
+        <AccordionItem>
+          <AccordionButton
+            bg={multiWeeks.length > 0 ? multiBg : undefined}
+            _hover={{
+              bg: multiWeeks.length > 0 ? multiBgHover : normalHover,
+            }}
+            _expanded={{
+              bg: multiWeeks.length > 0 ? multiBgHover : normalHover,
+            }}
+          >
+            <Flex flex="1" textAlign="left" fontWeight="bold">
+              {multiWeeks.length > 0
+                ? `Weken: ${multiWeeks.join(", ")}`
+                : `Week: ${selectedWeek ?? "—"}`}
+            </Flex>
+
+            <Box
+              as="span"
+              cursor="pointer"
+              p={1}
+              onClick={(e: React.MouseEvent<HTMLSpanElement>) => {
+                e.stopPropagation();
+                // Pre-selecteer de huidige week als multi-select leeg is
+                if (multiWeeks.length === 0 && selectedWeek) {
+                  setMultiWeeks([selectedWeek]);
+                }
+                setMultiMode("week");
+              }}
+            >
+              <Icon as={FunnelSettingsIcon} boxSize={4} color={iconColor} />
+            </Box>
+
+            <ChevronDownIcon color={iconColor} />
+          </AccordionButton>
+
+          <AccordionPanel>
+            <WeekList
+              year={selectedYear}
+              month={selectedMonth ?? currentMonth}
+              selectedWeek={selectedWeek}
+              multiSelected={multiWeeks}
+              onSelect={(week) => {
+                setSelectedWeek(week);
+                const range = getRangeForWeek(selectedYear, week);
+                onChange({
+                  type: "week",
+                  year: selectedYear,
+                  month: selectedMonth ?? currentMonth,
+                  week,
+                  from: range.from,
+                  to: range.to,
+                });
+              }}
+              onOpenFilter={(week) => {
+                setSelectedWeekForDayFilter(week.weekNumber);
+                setMultiMode("day");
+              }}
+            />
+          </AccordionPanel>
+        </AccordionItem>
+
+        {/* DAY LEVEL */}
+        <AccordionItem>
+          <AccordionButton
+            bg={multiDays.length > 0 ? multiBg : undefined}
+            _hover={{
+              bg: multiDays.length > 0 ? multiBgHover : normalHover,
+            }}
+            _expanded={{
+              bg: multiDays.length > 0 ? multiBgHover : normalHover,
+            }}
+          >
+            <Flex flex="1" textAlign="left" fontWeight="bold">
+              {getDaysLabel()}
+            </Flex>
+
+            <Box
+              as="span"
+              cursor="pointer"
+              p={1}
+              onClick={(e: React.MouseEvent<HTMLSpanElement>) => {
+                e.stopPropagation();
+                // Pre-selecteer de huidige dag als multi-select leeg is
+                if (multiDays.length === 0 && selectedDay !== null) {
+                  setMultiDays([selectedDay]);
+                }
+                setMultiMode("day");
+                setSelectedWeekForDayFilter(selectedWeek);
+              }}
+            >
+              <Icon as={FunnelSettingsIcon} boxSize={4} color={iconColor} />
+            </Box>
+
+            <ChevronDownIcon color={iconColor} />
+          </AccordionButton>
+
+          <AccordionPanel>
+            <DayList
+              weekNumber={selectedWeek ?? 1}
+              selectedDays={selectedDay !== null ? [selectedDay] : []}
+              multiSelected={multiDays}
+              onSelect={(day) => {
+                setSelectedDay(day);
+                onChange({
+                  type: "day",
+                  year: selectedYear,
+                  month: selectedMonth ?? currentMonth,
+                  week: selectedWeek ?? 1,
+                  days: [String(day)],
+                  from: "",
+                  to: "",
+                });
+              }}
+            />
+          </AccordionPanel>
+        </AccordionItem>
+      </Accordion>
+
+      {multiMode && (
+        <MultiSelectOverlay
+          multiMode={multiMode}
+          currentYear={currentYear}
+          selectedMultiValues={getActiveMulti()}
+          setSelectedMultiValues={(values) => {
+            if (multiMode === "year") setMultiYears(values);
+            else if (multiMode === "month") setMultiMonths(values);
+            else if (multiMode === "week") setMultiWeeks(values);
+            else if (multiMode === "day") setMultiDays(values);
+          }}
+          onApply={handleApply}
+          onClose={() => setMultiMode(null)}
+          selectedWeekForDayFilter={selectedWeekForDayFilter}
+        />
+      )}
+    </Box>
+  );
+}

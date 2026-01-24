@@ -23,5 +23,13 @@
       "@shared/*": ["../shared/*"]
     }
   },
-  "include": ["src", "../shared"]
+  "include": [
+    "src",
+    "../shared",
+    "src/components/PeriodSelector/components/MonthList.tsx",
+    "src/components/PeriodSelector/components/FilterPanel.tsx",
+    "src/components/PeriodSelector/PeriodSelector.tsx",
+    "src/components/PeriodSelector/components/WeekList.tsx",
+    "src/components/PeriodSelector/components/YearList.tsx"
+  ]
 }

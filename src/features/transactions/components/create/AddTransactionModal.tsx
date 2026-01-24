@@ -7,7 +7,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { Transaction } from "@shared/types/Transaction";
+import type { Transaction } from "@shared/types/Transaction";
 
 const CATEGORY_LABELS: Record<number, string> = {
   1: "Boodschappen",

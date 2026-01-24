@@ -9,3 +9,28 @@ export async function apiGet<T>(path: string): Promise<T> {
 
   return res.json();
 }
+
+export async function apiPost<T>(path: string, body: any): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    throw new Error(`API error: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+import type { PeriodSelection } from "@shared/types/period";
+
+export async function fetchTransactions(
+  period: PeriodSelection,
+): Promise<any[]> {
+  return apiPost<any[]>("/transactions/filter", {
+    userId: "demo-user", // of "1" afhankelijk van jouw DB
+    ...period,
+  });
+}

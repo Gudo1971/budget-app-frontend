@@ -5,22 +5,15 @@ import { TransactionCard } from "../../../../dashboard/components/TransactionCar
 import { useLocation } from "react-router-dom";
 import { mapBackendToTransaction } from "@/features/transactions/utils/mapBackendTransaction";
 
-export function TransactionsList() {
-  const location = useLocation();
+type Props = {
+  items: Transaction[];
+};
 
-  const { data: transactions, loading } = useTransactions(location.search);
-
-  if (loading) {
-    return <Text>Loading transactions...</Text>;
-  }
-
+export function TransactionsList({ items }: Props) {
   return (
     <VStack align="stretch" spacing={3}>
-      {transactions.map((t: Transaction) => (
-        <TransactionCard
-          key={t.id}
-          transaction={mapBackendToTransaction(t)} // ⭐ FIX
-        />
+      {items.map((t) => (
+        <TransactionCard key={t.id} transaction={mapBackendToTransaction(t)} />
       ))}
     </VStack>
   );
