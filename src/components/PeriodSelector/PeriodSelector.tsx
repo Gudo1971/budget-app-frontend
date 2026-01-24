@@ -46,11 +46,11 @@ export function PeriodSelector({ onChange }: PeriodSelectorProps) {
   >(null);
 
   const iconColor = useColorModeValue("gray.600", "gray.300");
-  
+
   // Alle color mode values voor de Box container
   const containerBg = useColorModeValue("gray.100", "gray.800");
   const containerBorder = useColorModeValue("gray.300", "gray.600");
-  
+
   // Color mode values voor multi-select highlighting
   const multiBg = useColorModeValue("blue.100", "blue.700");
   const multiBgHover = useColorModeValue("blue.200", "blue.600");
