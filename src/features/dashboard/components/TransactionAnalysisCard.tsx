@@ -1,10 +1,11 @@
-import { VStack, Box, Text, Flex } from "@chakra-ui/react";
+import { VStack, Box, Text } from "@chakra-ui/react";
 import { CardWrapper } from "../../../components/ui/CardWrapper";
 import { DonutChart } from "../../../components/charts/DonutChart";
 import { SectionHeader } from "../../../components/ui/SectionHeader";
 import { generateRealisticInsight } from "../../../lib/ai/realisticInsights";
 import { SubSectionHeader } from "../../../components/ui/SubSectionHeader";
-import { getCategoryName } from "@shared/constants/categories";
+import { useEffect, useState } from "react";
+import { useDateFilter } from "../../../context/DateFilterContext";
 
 export type TransactionAnalysisCardProps = {
   total: number;
@@ -18,19 +19,49 @@ export type TransactionAnalysisCardProps = {
   daysInPeriod: number;
 };
 
+// ⭐ Type voor backend summary items
+type SummaryItem = {
+  category_id: number;
+  name: string;
+  total: number;
+};
+
 export const TransactionAnalysisCard = (
   props: TransactionAnalysisCardProps,
 ) => {
-  const {
-    total,
-    categories,
-    transactions,
-    sortedCategories,
-    budget,
-    spent,
-    daysPassed,
-    daysInPeriod,
-  } = props;
+  const { sortedCategories, budget, spent, daysPassed, daysInPeriod } = props;
+
+  const [summaryData, setSummaryData] = useState([]);
+  const { range } = useDateFilter();
+
+  // ⭐ FETCH SUMMARY DATA
+  useEffect(() => {
+    async function load() {
+      const from = range.from.toISOString().slice(0, 10);
+      const to = range.to.toISOString().slice(0, 10);
+
+      const res = await fetch(
+        `/api/summary?userId=demo-user&from=${from}&to=${to}`,
+      );
+
+      const json = await res.json();
+
+      if (!json.success || !json.data) {
+        setSummaryData([]);
+        return;
+      }
+
+      const mapped = json.data.map((item: SummaryItem) => ({
+        name: item.name,
+        value: Math.abs(item.total),
+        category_id: item.category_id,
+      }));
+
+      setSummaryData(mapped);
+    }
+
+    load();
+  }, [range]);
 
   const insight = generateRealisticInsight({
     sortedCategories,
@@ -40,16 +71,17 @@ export const TransactionAnalysisCard = (
     daysInPeriod,
   });
 
+  const remaining = budget - spent;
+  const spentPct = (spent / budget) * 100;
+
   return (
     <CardWrapper>
       <VStack align="start" spacing={4} w="full">
-        {/* Hoofdheader */}
         <SectionHeader
           label="Transactie-analyse"
           info="Dit inzicht helpt je begrijpen hoe jouw uitgaven verdeeld zijn over categorieën en welke uitgaven het zwaarst wegen in je maandbudget."
         />
 
-        {/* Grijze subcontainer */}
         <Box
           w="full"
           bg="gray.900"
@@ -59,24 +91,51 @@ export const TransactionAnalysisCard = (
           border="1px solid"
           borderColor="whiteAlpha.200"
         >
-          {/* Insight tekst */}
           <Text fontSize="sm" color="gray.300" mb={3}>
             {insight}
           </Text>
 
-          {/* Subheader + info ballon */}
           <SubSectionHeader
             label="Uitgavenverdeling"
-            info="Deze grafiek laat zien hoe jouw uitgaven verdeeld zijn over categorieën. Het percentage toont welk deel van je totale uitgaven naar een categorie ging. Dit helpt je snel zien welke categorieën het zwaarst wegen in je maandelijkse uitgaven."
+            info="Deze grafiek laat zien hoe jouw uitgaven verdeeld zijn over categorieën."
           />
 
-          {/* Donut chart */}
+          {/* ⭐ Donut chart */}
           <Box w="full" mt={3}>
-            <DonutChart
-              total={total}
-              categories={categories}
-              transactions={transactions}
-            />
+            <DonutChart data={summaryData} />
+          </Box>
+
+          {/* ⭐ Budget Progress Bar */}
+          <Box mt={5}>
+            <Text fontSize="sm" color="gray.400" mb={1}>
+              Budgetvoortgang
+            </Text>
+
+            <Box
+              w="full"
+              h="10px"
+              bg="gray.700"
+              borderRadius="full"
+              overflow="hidden"
+            >
+              <Box
+                h="full"
+                w={`${spentPct}%`}
+                bg={
+                  spentPct > 90
+                    ? "red.400"
+                    : spentPct > 60
+                      ? "orange.400"
+                      : "green.400"
+                }
+                transition="width 0.3s ease"
+              />
+            </Box>
+
+            <Text fontSize="xs" color="gray.400" mt={1}>
+              €{spent.toFixed(0)} van €{budget.toFixed(0)} uitgegeven — €
+              {remaining.toFixed(0)} over
+            </Text>
           </Box>
         </Box>
       </VStack>

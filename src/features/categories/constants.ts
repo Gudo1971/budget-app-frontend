@@ -1,0 +1,15 @@
+export const CATEGORY_MAP: Record<number, string> = {
+  1: "Boodschappen",
+  2: "Horeca",
+  3: "Persoonlijke verzorging",
+  4: "Vervoer",
+  5: "Gezondheid",
+  6: "Abonnementen",
+  7: "Woonkosten",
+  8: "Shopping",
+  9: "Kinderen",
+  10: "Telecom",
+  11: "Uitjes",
+  12: "Inkomen",
+  13: "Overig",
+};

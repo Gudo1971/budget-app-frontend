@@ -1,6 +1,6 @@
 import { detectBank } from "./bankDetector";
-import { parseRabobankRow } from "./psarsers/parseRabobank";
-import { parseIngRow } from "./psarsers/parseIng";
+import { parseRabobankRow } from "./parsers/parseRabobank";
+import { parseIngRow } from "./parsers/parseIng";
 
 export function importCsv(rows: any[]) {
   const columns = Object.keys(rows[0]);

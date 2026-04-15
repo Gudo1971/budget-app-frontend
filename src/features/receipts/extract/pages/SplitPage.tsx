@@ -9,12 +9,13 @@ import {
   HStack,
   Divider,
 } from "@chakra-ui/react";
-import { SplitItemList } from "@/features/stress/components";
+
 import { SplitForm } from "@/features/receipts/split/components/SplitForm";
+import { SplitItemRow } from "@/features/stress/components/SplitItemRow";
 
 async function fetchSplitItems(transactionId: string) {
   const res = await fetch(
-    `http://localhost:3001/split-transactions/${transactionId}`
+    `http://localhost:3001/split-transactions/${transactionId}`,
   );
   if (!res.ok) throw new Error("Failed to fetch split items");
   return res.json();
@@ -67,7 +68,9 @@ export default function SplitPage() {
 
       {data && data.length > 0 && (
         <VStack spacing={4} align="stretch">
-          <SplitItemList items={data} />
+          {data.map((item: any) => (
+            <SplitItemRow key={item.id} item={item} />
+          ))}
         </VStack>
       )}
     </Box>

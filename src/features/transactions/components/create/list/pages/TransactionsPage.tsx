@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   IconButton,
   HStack,
@@ -12,56 +12,83 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { TransactionsList } from "../TransactionsList";
 import { PeriodSelector } from "@/components/PeriodSelector/PeriodSelector";
 
-import { fetchTransactions } from "@/lib/api/api";
-import type { PeriodSelection } from "@shared/types/period";
 import { FunnelSettingsIcon } from "@/components/funnel-settings/FunnelSettingsIcon";
+
+import { useDateFilter } from "@/context/DateFilterContext";
+import { useTransactions } from "@/hooks/useTransactions";
 
 export default function TransactionsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [showFilters, setShowFilters] = useState(false);
-  const baseColor = useColorModeValue("#2D3748", "#E2E8F0");
   const neonBlue = "#00C8FF";
 
-  const [period, setPeriod] = useState<PeriodSelection>({
-    type: "month",
-    year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1,
-  });
+  // ⭐ DateFilterContext
+  const { range, setRange } = useDateFilter();
 
-  const [transactions, setTransactions] = useState<any[]>([]);
-
+  // ⭐ URL → DateFilterContext sync
   useEffect(() => {
-    async function load() {
-      const data = await fetchTransactions(period); // geen generics meer
-      setTransactions(data); // data is nu any[], geen unknown
+    const params = new URLSearchParams(location.search);
+
+    const from = params.get("from");
+    const to = params.get("to");
+
+    if (from && to) {
+      setRange({
+        from: new Date(from),
+        to: new Date(to),
+      });
+    }
+  }, [location.search, setRange]);
+
+  // ⭐ Fetch ALL transactions once
+  const { data: transactions, loading, refetch } = useTransactions();
+
+  // ⭐ URL filters
+  const params = new URLSearchParams(location.search);
+  const category = params.get("category");
+  const type = params.get("type"); // ⭐ income / expenses
+
+  // ⭐ Filter op date + category + type
+  const filtered = transactions.filter((t) => {
+    const d = new Date(t.date);
+    const inRange = d >= range.from && d <= range.to;
+
+    // ⭐ TYPE FILTER
+    let inType = true;
+    if (type === "income") {
+      inType = t.amount > 0;
+    } else if (type === "expenses") {
+      inType = t.amount < 0;
     }
 
-    load();
-  }, [period]);
+    // ⭐ CATEGORY FILTER
+    let inCategory = true;
+
+    if (category === "null") {
+      inCategory =
+        t.category_id === null ||
+        t.category_id === 0 ||
+        t.category_id === undefined;
+    } else if (category) {
+      inCategory = t.category_id === Number(category);
+    }
+
+    return inRange && inCategory && inType;
+  });
 
   return (
     <PageLayout
       title="Transacties"
       rightSection={
         <HStack spacing={0}>
-          <Tooltip
-            label="Opties "
-            placement="top"
-            hasArrow
-            openDelay={150}
-            fontSize="xs"
-            px={2}
-            py={1}
-          >
+          <Tooltip label="Instellingen" placement="top" hasArrow>
             <IconButton
               aria-label="Instellingen"
               icon={<FiSettings />}
               variant="ghost"
               size="sm"
-              minW="28px"
-              height="28px"
-              p={0}
               onClick={() => navigate("/transactions/settings")}
               _hover={{ color: neonBlue }}
             />
@@ -73,18 +100,16 @@ export default function TransactionsPage() {
               icon={<FunnelSettingsIcon />}
               variant="ghost"
               size="sm"
-              minW="28px"
-              height="28px"
-              p={0}
               onClick={() => setShowFilters((v) => !v)}
             />
           </Tooltip>
         </HStack>
       }
     >
-      {showFilters && <PeriodSelector onChange={setPeriod} />}
+      {/* ⭐ PeriodSelector werkt nu met DateFilterContext */}
+      {showFilters && <PeriodSelector />}
 
-      <TransactionsList items={transactions} />
+      <TransactionsList items={filtered} refetchTransactions={refetch} />
     </PageLayout>
   );
 }

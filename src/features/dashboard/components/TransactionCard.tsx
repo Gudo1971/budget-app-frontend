@@ -11,16 +11,36 @@ import {
   Divider,
   Image,
   Tooltip,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Transaction } from "@shared/types/Transaction";
-import { getCategoryName } from "@shared/constants/categories";
+import { getCategoryName } from "@shared/constants/categories_old";
 import { getSubcategoryName } from "@shared/constants/subcategories";
-export function TransactionCard({ transaction }: { transaction: Transaction }) {
+
+import { CategorySelectModal } from "@/components/categories/CategorySelectModal";
+import { updateMerchantMemory } from "@/lib/api/merchantMemory";
+import { useCategories } from "@/features/categories/hooks/useCategories";
+import { updateTransactionCategory } from "@/lib/api/transactions";
+
+export function TransactionCard({
+  transaction,
+  refetchTransactions,
+}: {
+  transaction: Transaction;
+  refetchTransactions: () => Promise<void>;
+}) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+
+  // ⭐ Modal state
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedMerchant, setSelectedMerchant] = useState<string | null>(null);
+
+  // ⭐ use categories hook (moet boven handlers staan)
+  const { categories, refetch } = useCategories();
 
   const isExpense = transaction.amount < 0;
   const sign = isExpense ? "-" : "+";
@@ -41,203 +61,253 @@ export function TransactionCard({ transaction }: { transaction: Transaction }) {
     ? `${categoryLabel} • ${subcategoryLabel}`
     : categoryLabel;
 
+  // ⭐ Open modal
+  const openCategoryModal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedMerchant(transaction.merchant ?? "Onbekend");
+    onOpen();
+  };
+
+  // ⭐ Select category
+  const handleSelectCategory = async (categoryId: number) => {
+    await updateTransactionCategory(transaction.id, categoryId);
+    await updateMerchantMemory(transaction.merchant ?? "Onbekend", categoryId);
+
+    // ⭐ realtime update
+    await refetchTransactions();
+
+    onClose();
+  };
+
+  const handleCreateCategory = async (name: string) => {
+    const res = await fetch("/api/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: "demo-user",
+        name,
+      }),
+    });
+
+    const newCat = await res.json();
+
+    // ⭐ categorieën verversen
+    await refetch();
+
+    // ⭐ merchant memory
+    await updateMerchantMemory(transaction.merchant ?? "Onbekend", newCat.id);
+
+    // ⭐ transacties verversen
+    await refetchTransactions();
+
+    onClose();
+  };
+
   return (
-    <Box
-      w="100%"
-      borderWidth="1px"
-      borderColor="gray.200"
-      borderRadius="xl"
-      bg="gray.50"
-      _dark={{ bg: "gray.800" }}
-      boxShadow="sm"
-      px={4}
-      py={3}
-      transition="0.2s"
-      _hover={{
-        boxShadow: "md",
-        borderColor: "gray.300",
-        bg: "gray.50",
-        _dark: { bg: "gray.800" },
-        transform: "translateY(-1px)",
-      }}
-      onClick={() => setOpen(!open)}
-      cursor="pointer"
-      mb={4}
-    >
-      {/* HEADER */}
-      <HStack justify="space-between" align="flex-start" spacing={4}>
-        {/* LEFT SIDE */}
-        <VStack align="start" spacing={1}>
-          {/* Merchant */}
-          <Text
-            fontSize="sm"
-            fontWeight="medium"
-            color="gray.700"
-            _dark={{ color: "gray.200" }}
-          >
-            {merchantLabel}
-          </Text>
-
-          {/* Description */}
-          {transaction.description && (
-            <Text fontSize="xs" color="gray.500">
-              {transaction.description}
-            </Text>
-          )}
-
-          {/* Category + Subcategory */}
-          <Tooltip
-            label="Automatische suggestie, controleer altijd zelf"
-            openDelay={300}
-          >
-            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
-              {combinedCategoryLabel}
-            </Text>
-          </Tooltip>
-
-          {/* Date */}
-          <Text fontSize="xs" color="gray.400">
-            {dateLabel}
-          </Text>
-
-          {/* Recurring */}
-          {transaction.recurring && (
-            <Badge
-              fontSize="0.6rem"
-              colorScheme="purple"
-              borderRadius="full"
-              px={2}
+    <>
+      <Box
+        w="100%"
+        borderWidth="1px"
+        borderColor="gray.200"
+        borderRadius="xl"
+        bg="gray.50"
+        _dark={{ bg: "gray.800" }}
+        boxShadow="sm"
+        px={4}
+        py={3}
+        transition="0.2s"
+        _hover={{
+          boxShadow: "md",
+          borderColor: "gray.300",
+          bg: "gray.50",
+          _dark: { bg: "gray.800" },
+          transform: "translateY(-1px)",
+        }}
+        onClick={() => setOpen(!open)}
+        cursor="pointer"
+        mb={4}
+      >
+        {/* HEADER */}
+        <HStack justify="space-between" align="flex-start" spacing={4}>
+          {/* LEFT SIDE */}
+          <VStack align="start" spacing={1}>
+            {/* Merchant */}
+            <Text
+              fontSize="sm"
+              fontWeight="medium"
+              color="gray.700"
+              _dark={{ color: "gray.200" }}
             >
-              Terugkerend
-            </Badge>
-          )}
-        </VStack>
+              {merchantLabel}
+            </Text>
 
-        {/* RIGHT SIDE */}
-        <VStack align="flex-end" spacing={2} minW="100px">
-          <Text
-            fontSize="sm"
-            fontWeight="semibold"
-            color={isExpense ? "red.500" : "green.500"}
-          >
-            {sign}€{amount}
-          </Text>
+            {/* Description */}
+            {transaction.description && (
+              <Text fontSize="xs" color="gray.500">
+                {transaction.description}
+              </Text>
+            )}
 
-          <Text fontSize="xs" color="gray.400">
-            {isExpense ? "Uitgave" : "Inkomst"}
-          </Text>
-
-          {isExpense && (
+            {/* Category + Subcategory */}
             <Tooltip
-              label="Verdeel deze uitgave over meerdere personen"
+              label="Automatische suggestie, controleer altijd zelf"
               openDelay={300}
             >
-              <Button
-                size="xs"
-                colorScheme="blue"
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/split/${transaction.id}`);
-                }}
+              <Text
+                fontSize="xs"
+                color="gray.600"
+                _dark={{ color: "gray.300" }}
               >
-                Split
-              </Button>
-            </Tooltip>
-          )}
-
-          {hasDetailsToShow && (
-            <Tooltip label="Toon bon en details" openDelay={300}>
-              <ChevronDownIcon
-                boxSize={5}
-                color="gray.400"
-                transform={open ? "rotate(180deg)" : "rotate(0deg)"}
-                transition="transform 0.2s ease"
-                mt={1}
-              />
-            </Tooltip>
-          )}
-        </VStack>
-      </HStack>
-
-      {/* COLLAPSE */}
-      <Collapse in={open && hasDetailsToShow} animateOpacity>
-        <VStack align="start" spacing={4} mt={4}>
-          <Divider />
-
-          {/* Thumbnail */}
-          {transaction.receipt?.thumbnailUrl && (
-            <Box>
-              <Text fontWeight="bold" mb={1}>
-                Bon
+                {combinedCategoryLabel}
               </Text>
+            </Tooltip>
 
-              <Tooltip label="Klik om de bon te bekijken" openDelay={300}>
-                <Image
-                  src={transaction.receipt.thumbnailUrl}
-                  alt="Bon"
-                  maxW="150px"
-                  borderRadius="md"
+            {/* Date */}
+            <Text fontSize="xs" color="gray.400">
+              {dateLabel}
+            </Text>
+
+            {/* Recurring */}
+            {transaction.recurring && (
+              <Badge
+                fontSize="0.6rem"
+                colorScheme="purple"
+                borderRadius="full"
+                px={2}
+              >
+                Terugkerend
+              </Badge>
+            )}
+          </VStack>
+
+          {/* RIGHT SIDE */}
+          <VStack align="flex-end" spacing={2} minW="100px">
+            <Text
+              fontSize="sm"
+              fontWeight="semibold"
+              color={isExpense ? "red.500" : "green.500"}
+            >
+              {sign}€{amount}
+            </Text>
+
+            <Text fontSize="xs" color="gray.400">
+              {isExpense ? "Uitgave" : "Inkomst"}
+            </Text>
+
+            {/* ⭐ Categoriseer knop */}
+            <Button
+              size="xs"
+              variant="outline"
+              color="gray.600"
+              _dark={{ color: "gray.300" }}
+              onClick={openCategoryModal}
+            >
+              Categoriseer
+            </Button>
+
+            {hasDetailsToShow && (
+              <Tooltip label="Toon bon en details" openDelay={300}>
+                <ChevronDownIcon
+                  boxSize={5}
+                  color="gray.400"
+                  transform={open ? "rotate(180deg)" : "rotate(0deg)"}
+                  transition="transform 0.2s ease"
+                  mt={1}
                 />
               </Tooltip>
-            </Box>
-          )}
+            )}
+          </VStack>
+        </HStack>
 
-          {/* AI RESULT DETAILS */}
-          {ai && (
-            <Box>
-              <Text fontWeight="bold" mb={1}>
-                Gelezen van de bon
-              </Text>
+        {/* COLLAPSE */}
+        <Collapse in={open && hasDetailsToShow} animateOpacity>
+          <VStack align="start" spacing={4} mt={4}>
+            <Divider />
 
-              {ai.merchant && (
-                <Text>
-                  <strong>Merchant:</strong> {ai.merchant}
+            {/* Thumbnail */}
+            {transaction.receipt?.thumbnailUrl && (
+              <Box>
+                <Text fontWeight="bold" mb={1}>
+                  Bon
                 </Text>
-              )}
 
-              {ai.category && (
-                <Text>
-                  <strong>Categorie:</strong> {ai.category}
+                <Tooltip label="Klik om de bon te bekijken" openDelay={300}>
+                  <Image
+                    src={transaction.receipt.thumbnailUrl}
+                    alt="Bon"
+                    maxW="150px"
+                    borderRadius="md"
+                  />
+                </Tooltip>
+              </Box>
+            )}
+
+            {/* AI RESULT DETAILS */}
+            {ai && (
+              <Box>
+                <Text fontWeight="bold" mb={1}>
+                  Gelezen van de bon
                 </Text>
-              )}
 
-              {ai.subcategory && (
-                <Text>
-                  <strong>Subcategorie:</strong> {ai.subcategory}
+                {ai.merchant && (
+                  <Text>
+                    <strong>Merchant:</strong> {ai.merchant}
+                  </Text>
+                )}
+
+                {ai.category && (
+                  <Text>
+                    <strong>Categorie:</strong> {ai.category}
+                  </Text>
+                )}
+
+                {ai.subcategory && (
+                  <Text>
+                    <strong>Subcategorie:</strong> {ai.subcategory}
+                  </Text>
+                )}
+
+                {ai.date && (
+                  <Text>
+                    <strong>Datum:</strong> {ai.date}
+                  </Text>
+                )}
+
+                {ai.total && (
+                  <Text>
+                    <strong>Totaal:</strong> €{ai.total}
+                  </Text>
+                )}
+
+                {(ai.items?.length ?? 0) > 0 && (
+                  <VStack align="start" spacing={1} mt={2}>
+                    <Text fontWeight="bold">Items:</Text>
+                    {(ai.items ?? []).map((item, i) => (
+                      <Text key={i}>
+                        • {item.name} — €{item.price} ({item.quantity}×)
+                      </Text>
+                    ))}
+                  </VStack>
+                )}
+
+                <Text fontSize="xs" color="gray.400" mt={2}>
+                  Automatische suggesties, controleer altijd zelf.
                 </Text>
-              )}
+              </Box>
+            )}
+          </VStack>
+        </Collapse>
+      </Box>
 
-              {ai.date && (
-                <Text>
-                  <strong>Datum:</strong> {ai.date}
-                </Text>
-              )}
-
-              {ai.total && (
-                <Text>
-                  <strong>Totaal:</strong> €{ai.total}
-                </Text>
-              )}
-
-              {(ai.items?.length ?? 0) > 0 && (
-                <VStack align="start" spacing={1} mt={2}>
-                  <Text fontWeight="bold">Items:</Text>
-                  {(ai.items ?? []).map((item, i) => (
-                    <Text key={i}>
-                      • {item.name} — €{item.price} ({item.quantity}×)
-                    </Text>
-                  ))}
-                </VStack>
-              )}
-
-              <Text fontSize="xs" color="gray.400" mt={2}>
-                Automatische suggesties, controleer altijd zelf.
-              </Text>
-            </Box>
-          )}
-        </VStack>
-      </Collapse>
-    </Box>
+      {/* ⭐ MODAL */}
+      <CategorySelectModal
+        isOpen={isOpen}
+        onClose={onClose}
+        merchant={selectedMerchant}
+        categories={categories}
+        onSelectCategory={handleSelectCategory}
+        onCreateCategory={handleCreateCategory}
+      />
+    </>
   );
 }

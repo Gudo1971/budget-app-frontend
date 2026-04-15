@@ -9,7 +9,7 @@ import ReceiptSettingsPage from "./features/receipts/extract/pages/ReceiptSettin
 import TransactionSettingsPage from "./features/transactions/components/create/list/pages/TransactionSettingsPage";
 import { ReceiptArchivePage } from "./features/receipts/extract/pages/ReceiptArchivePage";
 import MerchantMemoryDebug from "./pages/debug/MerchantMemoryDebug";
-
+import FilterPage from "./pages/filters/FilterPage";
 export default function App() {
   return (
     <Routes>
@@ -39,6 +39,8 @@ export default function App() {
           path="/debug/merchant-memory"
           element={<MerchantMemoryDebug />}
         />
+
+        <Route path="/filters" element={<FilterPage />} />
       </Route>
     </Routes>
   );

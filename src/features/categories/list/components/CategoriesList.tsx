@@ -1,8 +1,11 @@
 import { Box, Text, VStack } from "@chakra-ui/react";
-import { useCategories } from "./shared/components/hooks/useCategories";
+import {
+  Category,
+  useCategories,
+} from "@/features/categories/hooks/useCategories";
 
 export function CategoriesList() {
-  const { data: categories, loading } = useCategories();
+  const { categories, loading } = useCategories();
 
   if (loading) {
     return <Text>Loading categories...</Text>;
@@ -14,7 +17,7 @@ export function CategoriesList() {
 
   return (
     <VStack align="stretch" spacing={3}>
-      {categories.map((c) => (
+      {categories.map((c: Category) => (
         <Box
           key={c.id}
           p={3}
@@ -24,9 +27,6 @@ export function CategoriesList() {
           _dark={{ bg: "gray.700" }}
         >
           <Text fontWeight="bold">{c.name}</Text>
-          <Text fontSize="sm" opacity={0.8}>
-            Type: {c.type}
-          </Text>
         </Box>
       ))}
     </VStack>
