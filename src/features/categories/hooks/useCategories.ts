@@ -1,9 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-
-export type Category = {
-  id: number;
-  name: string;
-};
+import type { Category } from "@/features/categories/types/Category";
+import { assignCategoryColors } from "../utils/categoryColors";
 
 const userId = "demo-user";
 
@@ -12,13 +9,10 @@ export function useCategories() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ⭐ Houd de huidige fetch bij zodat we hem kunnen annuleren
   const abortRef = useRef<AbortController | null>(null);
 
-  // ⭐ Stabiele fetch functie
   const fetchCategories = useCallback(async () => {
     try {
-      // Annuleer vorige request als die nog loopt
       if (abortRef.current) {
         abortRef.current.abort();
       }
@@ -35,25 +29,24 @@ export function useCategories() {
 
       if (!res.ok) throw new Error("Kon categorieën niet laden");
 
-      const data = await res.json();
+      const data: Category[] = await res.json();
 
-      // ⭐ Alleen updaten als de request niet is geannuleerd
       if (!controller.signal.aborted) {
-        setCategories(data);
+        // ⭐ Dynamische soft‑neon kleuren toepassen
+        const colored = assignCategoryColors(data);
+        setCategories(colored);
       }
     } catch (err: any) {
-      if (err.name === "AbortError") return; // ⭐ geen fout tonen bij annuleren
+      if (err.name === "AbortError") return;
       setError(err.message ?? "Onbekende fout");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ⭐ Initial load
   useEffect(() => {
     fetchCategories();
 
-    // Cleanup bij unmount
     return () => {
       if (abortRef.current) abortRef.current.abort();
     };
@@ -63,6 +56,6 @@ export function useCategories() {
     categories,
     loading,
     error,
-    refetch: fetchCategories, // ⭐ stabiele refetch
+    refetch: fetchCategories,
   };
 }

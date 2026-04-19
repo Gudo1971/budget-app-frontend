@@ -1,11 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  IconButton,
-  HStack,
-  useColorModeValue,
-  Tooltip,
-} from "@chakra-ui/react";
+import { IconButton, HStack, Tooltip } from "@chakra-ui/react";
 import { FiSettings } from "react-icons/fi";
 
 import { PageLayout } from "@/components/layout/PageLayout";
@@ -16,6 +11,9 @@ import { FunnelSettingsIcon } from "@/components/funnel-settings/FunnelSettingsI
 
 import { useDateFilter } from "@/context/DateFilterContext";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useCategories } from "@/features/categories/hooks/useCategories";
+
+import type { Transaction } from "@shared/types/Transaction";
 
 export default function TransactionsPage() {
   const navigate = useNavigate();
@@ -23,6 +21,9 @@ export default function TransactionsPage() {
 
   const [showFilters, setShowFilters] = useState(false);
   const neonBlue = "#00C8FF";
+
+  // ⭐ Freeze list while modal is open
+  const [freezeList, setFreezeList] = useState(false);
 
   // ⭐ DateFilterContext
   const { range, setRange } = useDateFilter();
@@ -43,12 +44,15 @@ export default function TransactionsPage() {
   }, [location.search, setRange]);
 
   // ⭐ Fetch ALL transactions once
-  const { data: transactions, loading, refetch } = useTransactions();
+  const { data: transactions } = useTransactions();
+
+  // ⭐ Fetch categories
+  const { categories, refetch: refetchCategories } = useCategories();
 
   // ⭐ URL filters
   const params = new URLSearchParams(location.search);
   const category = params.get("category");
-  const type = params.get("type"); // ⭐ income / expenses
+  const type = params.get("type"); // income / expenses
 
   // ⭐ Filter op date + category + type
   const filtered = transactions.filter((t) => {
@@ -63,20 +67,31 @@ export default function TransactionsPage() {
       inType = t.amount < 0;
     }
 
-    // ⭐ CATEGORY FILTER
+    // ⭐ CATEGORY FILTER — FIX: overslaan als modal open is
     let inCategory = true;
 
-    if (category === "null") {
-      inCategory =
-        t.category_id === null ||
-        t.category_id === 0 ||
-        t.category_id === undefined;
-    } else if (category) {
-      inCategory = t.category_id === Number(category);
+    if (!freezeList) {
+      if (category === "null") {
+        inCategory =
+          t.category_id === null ||
+          t.category_id === 0 ||
+          t.category_id === undefined;
+      } else if (category) {
+        inCategory = t.category_id === Number(category);
+      }
     }
 
     return inRange && inCategory && inType;
   });
+
+  // ⭐ Handlers for modal open/close
+  const handleModalOpen = () => {
+    setFreezeList(true);
+  };
+
+  const handleModalClose = () => {
+    setFreezeList(false);
+  };
 
   return (
     <PageLayout
@@ -106,10 +121,13 @@ export default function TransactionsPage() {
         </HStack>
       }
     >
-      {/* ⭐ PeriodSelector werkt nu met DateFilterContext */}
       {showFilters && <PeriodSelector />}
 
-      <TransactionsList items={filtered} refetchTransactions={refetch} />
+      <TransactionsList
+        items={filtered}
+        categories={categories ?? []}
+        refetchCategories={refetchCategories}
+      />
     </PageLayout>
   );
 }

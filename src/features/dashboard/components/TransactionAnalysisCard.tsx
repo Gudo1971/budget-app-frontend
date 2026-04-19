@@ -6,6 +6,7 @@ import { generateRealisticInsight } from "../../../lib/ai/realisticInsights";
 import { SubSectionHeader } from "../../../components/ui/SubSectionHeader";
 import { useEffect, useState } from "react";
 import { useDateFilter } from "../../../context/DateFilterContext";
+import { useCategories } from "@/features/categories/hooks/useCategories";
 
 export type TransactionAnalysisCardProps = {
   total: number;
@@ -33,6 +34,9 @@ export const TransactionAnalysisCard = (
 
   const [summaryData, setSummaryData] = useState([]);
   const { range } = useDateFilter();
+
+  // ⭐ Haal categorieën op (met kleur)
+  const { categories } = useCategories();
 
   // ⭐ FETCH SUMMARY DATA
   useEffect(() => {
@@ -102,7 +106,10 @@ export const TransactionAnalysisCard = (
 
           {/* ⭐ Donut chart */}
           <Box w="full" mt={3}>
-            <DonutChart data={summaryData} />
+            <DonutChart
+              data={summaryData}
+              categories={categories} // ⭐ FIX — voorkomt crash
+            />
           </Box>
 
           {/* ⭐ Budget Progress Bar */}

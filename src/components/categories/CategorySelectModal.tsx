@@ -5,34 +5,19 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  ModalCloseButton,
   Button,
   VStack,
   HStack,
   Text,
   Input,
+  Divider,
+  Box,
 } from "@chakra-ui/react";
+
 import { useState } from "react";
+import type { Category } from "@/features/categories/types/Category";
 
-// -----------------------------
-// TYPES
-// -----------------------------
-type Category = {
-  id: number;
-  name: string;
-};
-
-type CategorySelectModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  merchant: string | null;
-  categories: Category[];
-  onSelectCategory: (categoryId: number) => void;
-  onCreateCategory: (name: string) => void;
-};
-
-// -----------------------------
-// COMPONENT
-// -----------------------------
 export function CategorySelectModal({
   isOpen,
   onClose,
@@ -40,79 +25,75 @@ export function CategorySelectModal({
   categories,
   onSelectCategory,
   onCreateCategory,
-}: CategorySelectModalProps) {
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  merchant: string | null;
+  categories: Category[];
+  onSelectCategory: (categoryId: number) => void;
+  onCreateCategory: (name: string) => void;
+}) {
   const [newCategory, setNewCategory] = useState("");
-  const [creating, setCreating] = useState(false);
 
   const handleCreate = () => {
     if (!newCategory.trim()) return;
     onCreateCategory(newCategory.trim());
     setNewCategory("");
-    setCreating(false);
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
+    <Modal isOpen={isOpen} onClose={onClose} size="md" isCentered>
       <ModalOverlay />
-      <ModalContent bg="rgba(20,20,20,0.85)" backdropFilter="blur(10px)">
-        <ModalHeader color="white">
-          Categoriseer: {merchant ?? "Onbekend"}
+      <ModalContent>
+        <ModalHeader>
+          Categoriseer {merchant ? `– ${merchant}` : ""}
         </ModalHeader>
+        <ModalCloseButton />
 
         <ModalBody>
-          <VStack align="stretch" spacing={3}>
-            {categories.map((cat: Category) => (
-              <Button
-                key={cat.id}
-                onClick={() => onSelectCategory(cat.id)}
-                bg="rgba(255,255,255,0.05)"
-                _hover={{ bg: "rgba(255,255,255,0.15)" }}
-                color="white"
-              >
-                {cat.name}
-              </Button>
-            ))}
+          <VStack align="stretch" spacing={4}>
+            <Text fontSize="sm" color="gray.500">
+              Kies een categorie
+            </Text>
 
-            {!creating && (
-              <Button
-                mt={4}
-                variant="outline"
-                color="white"
-                borderColor="white"
-                onClick={() => setCreating(true)}
-              >
-                + Nieuwe categorie
-              </Button>
-            )}
+            {/* ⭐ Lijst met categorieën */}
+            <VStack align="stretch" spacing={2}>
+              {categories.map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant="outline"
+                  justifyContent="flex-start"
+                  onClick={() => onSelectCategory(cat.id)}
+                >
+                  {cat.name}
+                </Button>
+              ))}
+            </VStack>
 
-            {creating && (
-              <VStack align="stretch" spacing={2}>
+            <Divider />
+
+            {/* ⭐ Nieuwe categorie aanmaken */}
+            <Box>
+              <Text fontSize="sm" mb={2}>
+                Nieuwe categorie
+              </Text>
+
+              <HStack>
                 <Input
-                  placeholder="Naam nieuwe categorie"
+                  placeholder="Naam categorie"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  bg="rgba(255,255,255,0.1)"
-                  color="white"
                 />
-                <HStack>
-                  <Button colorScheme="blue" onClick={handleCreate}>
-                    Opslaan
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    color="white"
-                    onClick={() => setCreating(false)}
-                  >
-                    Annuleren
-                  </Button>
-                </HStack>
-              </VStack>
-            )}
+                <Button onClick={handleCreate} colorScheme="blue">
+                  Voeg toe
+                </Button>
+              </HStack>
+            </Box>
           </VStack>
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="ghost" color="white" onClick={onClose}>
+          <Button onClick={onClose} variant="ghost">
             Sluiten
           </Button>
         </ModalFooter>

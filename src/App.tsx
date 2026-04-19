@@ -10,6 +10,9 @@ import TransactionSettingsPage from "./features/transactions/components/create/l
 import { ReceiptArchivePage } from "./features/receipts/extract/pages/ReceiptArchivePage";
 import MerchantMemoryDebug from "./pages/debug/MerchantMemoryDebug";
 import FilterPage from "./pages/filters/FilterPage";
+import { UploadReceiptEntry } from "./features/settings-enigine/panels/UploadReceiptEntry";
+import { BudgetPage } from "./features/budget/BudgetPage";
+
 export default function App() {
   return (
     <Routes>
@@ -21,9 +24,13 @@ export default function App() {
           path="/transactions/settings"
           element={<TransactionSettingsPage />}
         />
+        {/* Budget page */}
+        <Route path="/budget" element={<BudgetPage />} />
 
         {/* Receipt list */}
         <Route path="/receipts" element={<ReceiptListPage />} />
+
+        <Route path="/upload-receipt" element={<UploadReceiptEntry />} />
 
         {/* Receipt archive */}
         <Route path="/receipts/archive" element={<ReceiptArchivePage />} />

@@ -20,7 +20,13 @@ type UploadingFile = {
   status: "pending" | "uploading" | "done" | "error";
 };
 
-export function UploadPanel({ closePreview }: { closePreview?: () => void }) {
+export function UploadPanel({
+  transactionId,
+  closePreview,
+}: {
+  transactionId?: number;
+  closePreview?: () => void;
+}) {
   const [files, setFiles] = useState<UploadingFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -59,6 +65,10 @@ export function UploadPanel({ closePreview }: { closePreview?: () => void }) {
       const formData = new FormData();
       formData.append("file", f.file);
 
+      if (transactionId) {
+        formData.append("transactionId", String(transactionId));
+      }
+
       const res = await fetch(
         "http://localhost:3001/api/receipts/upload/smart",
         {
@@ -77,6 +87,23 @@ export function UploadPanel({ closePreview }: { closePreview?: () => void }) {
       }
 
       const data = await res.json();
+
+      // ⭐⭐⭐ KOPPEL-FLOW (BELANGRIJK!)
+      if (transactionId) {
+        toast({
+          title: "Bon gekoppeld",
+          description: "De bon is succesvol gekoppeld aan de transactie.",
+          status: "success",
+        });
+
+        // Modal sluiten
+        closePreview?.();
+
+        // NIETS meer doen
+        setIsUploading(false);
+        setFiles([]);
+        return;
+      }
 
       // --- DUPLICATE ---
       if (data.action === "duplicate") {
