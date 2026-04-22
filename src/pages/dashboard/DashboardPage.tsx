@@ -24,18 +24,37 @@ import {
   generateRealisticInsight,
 } from "@/lib/ai/realisticInsights";
 
-import { useDateFilter } from "@/context/DateFilterContext";
-import type { DateRange } from "@/context/DateFilterContext";
-
+import { useDashboardPeriod } from "@/hooks/useDashboardPeriod";
 import { useTransactions } from "@/hooks/useTransactions";
 import { getCategoryName } from "@shared/constants/categories_old";
 
-function isInRange(dateString: string, range: DateRange) {
+// --------------------------------------------------
+// ⭐ TYPES
+// --------------------------------------------------
+
+type UITransaction = {
+  id: string;
+  date: string;
+  amount: number | string;
+  category_id: number | null; // ⭐ FIX HIER
+};
+
+type Period = {
+  from: Date;
+  to: Date;
+  mode: "month" | "year" | "week" | "day";
+};
+
+// --------------------------------------------------
+// ⭐ HELPERS
+// --------------------------------------------------
+
+function isInRange(dateString: string, range: Period) {
   const d = new Date(dateString);
   return d >= range.from && d <= range.to;
 }
 
-function extractAvailableMonths(transactions: any[]) {
+function extractAvailableMonths(transactions: { date: string }[]) {
   const set = new Set<string>();
 
   transactions.forEach((t) => {
@@ -48,12 +67,16 @@ function extractAvailableMonths(transactions: any[]) {
   return Array.from(set).sort().reverse();
 }
 
+// --------------------------------------------------
+// ⭐ DASHBOARD PAGE
+// --------------------------------------------------
+
 export default function DashboardPage() {
   const { colorMode } = useColorMode();
   const navigate = useNavigate();
   const [activeCard, setActiveCard] = useState(0);
 
-  const { range, setRange } = useDateFilter();
+  const { period, setPeriod } = useDashboardPeriod();
   const { data: transactions = [] } = useTransactions();
 
   const availableMonths = useMemo(
@@ -61,12 +84,16 @@ export default function DashboardPage() {
     [transactions],
   );
 
-  const uiTransactions = transactions
-    .filter((t) => isInRange(t.date, range))
+  const uiTransactions: UITransaction[] = transactions
+    .filter((t) => isInRange(t.date, period))
     .map((t) => ({
       ...t,
       id: String(t.id),
     }));
+
+  // --------------------------------------------------
+  // ⭐ INKOMEN
+  // --------------------------------------------------
 
   const income = uiTransactions
     .filter((t) => Number(t.amount) > 0)
@@ -77,20 +104,22 @@ export default function DashboardPage() {
   const incomeByCategory = incomeTransactions.reduce<Record<string, number>>(
     (acc, t) => {
       const cat = getCategoryName(t.category_id) ?? "Overig";
-      if (!acc[cat]) acc[cat] = 0;
-      acc[cat] += Number(t.amount);
+      acc[cat] = (acc[cat] ?? 0) + Number(t.amount);
       return acc;
     },
     {},
   );
+
+  // --------------------------------------------------
+  // ⭐ UITGAVEN
+  // --------------------------------------------------
 
   const categories = uiTransactions.reduce<Record<string, number>>((acc, t) => {
     const amount = Number(t.amount);
 
     if (amount < 0) {
       const catName = getCategoryName(t.category_id);
-      if (!acc[catName]) acc[catName] = 0;
-      acc[catName] += Math.abs(amount);
+      acc[catName] = (acc[catName] ?? 0) + Math.abs(amount);
     }
 
     return acc;
@@ -101,29 +130,36 @@ export default function DashboardPage() {
   const entries = Object.entries(categories) as [string, number][];
   const sorted = [...entries].sort((a, b) => b[1] - a[1]);
 
+  // --------------------------------------------------
+  // ⭐ FIXED COSTS
+  // --------------------------------------------------
+
   const FIXED_COST_CATEGORY_IDS = [7, 6];
 
   const fixedCosts = uiTransactions
     .filter((t) => FIXED_COST_CATEGORY_IDS.includes(t.category_id ?? 0))
     .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
 
-  // ⭐ Correct aantal dagen in de geselecteerde maand
+  // --------------------------------------------------
+  // ⭐ PERIODE BEREKENINGEN
+  // --------------------------------------------------
+
   const daysInPeriod = new Date(
-    range.from.getFullYear(),
-    range.from.getMonth() + 1,
+    period.from.getFullYear(),
+    period.from.getMonth() + 1,
     0,
   ).getDate();
 
-  // ⭐ Is dit de huidige maand?
   const isCurrentMonth =
-    range.from.getMonth() === new Date().getMonth() &&
-    range.from.getFullYear() === new Date().getFullYear();
+    period.from.getMonth() === new Date().getMonth() &&
+    period.from.getFullYear() === new Date().getFullYear();
 
-  // ⭐ Aantal dagen verstreken
   const daysPassed = isCurrentMonth ? new Date().getDate() : daysInPeriod;
-
-  // ⭐ Aantal dagen over
   const daysLeft = daysInPeriod - daysPassed;
+
+  // --------------------------------------------------
+  // ⭐ BUDGET & STRESS
+  // --------------------------------------------------
 
   const autoBudget = income;
   const userBudget = null;
@@ -147,6 +183,10 @@ export default function DashboardPage() {
     daysPassed,
     daysInPeriod,
   });
+
+  // --------------------------------------------------
+  // ⭐ REMAINING
+  // --------------------------------------------------
 
   const remainingBudget = budget - totalExpenses;
   const remainingDays = daysLeft;
@@ -193,21 +233,28 @@ export default function DashboardPage() {
     spentPercentage: activeCard === 0 ? spentPercentage : 0,
   };
 
+  // --------------------------------------------------
+  // ⭐ CATEGORY STATS
+  // --------------------------------------------------
+
   const categoryStats = sorted.map(([name, amount]) => {
-    const example = uiTransactions.find((t) => {
-      const catName = getCategoryName(t.category_id);
-      return catName === name;
-    });
+    const example = uiTransactions.find(
+      (t) => getCategoryName(t.category_id) === name,
+    );
 
     return {
       id: example?.category_id ?? 0,
       name,
-      amount,
+      amount: Number(amount),
       count: uiTransactions.filter(
         (t) => getCategoryName(t.category_id) === name,
       ).length,
     };
   });
+
+  // --------------------------------------------------
+  // ⭐ RENDER
+  // --------------------------------------------------
 
   return (
     <VStack w="full" align="stretch" gap={6}>
@@ -216,19 +263,19 @@ export default function DashboardPage() {
 
         <HStack spacing={3}>
           <Select
-            value={`${range.from.getFullYear()}-${String(
-              range.from.getMonth() + 1,
+            value={`${period.from.getFullYear()}-${String(
+              period.from.getMonth() + 1,
             ).padStart(2, "0")}`}
             onChange={(e) => {
               const [year, month] = e.target.value.split("-");
               const from = new Date(Number(year), Number(month) - 1, 1);
               const to = new Date(Number(year), Number(month), 0);
-              setRange({ from, to });
+              setPeriod({ from, to, mode: "month" });
             }}
             w="160px"
             size="sm"
           >
-            {availableMonths.map((ym) => {
+            {availableMonths.map((ym: string) => {
               const [y, m] = ym.split("-");
               const label = new Date(Number(y), Number(m) - 1).toLocaleString(
                 "nl-NL",
@@ -303,6 +350,7 @@ export default function DashboardPage() {
             daysPassed={daysPassed}
             daysInPeriod={daysInPeriod}
           />
+
           <Box w="full" maxW="500px" mx="auto" mt={4}>
             <BudgetProgressCard
               budget={budget}
@@ -320,8 +368,8 @@ export default function DashboardPage() {
             onSelectCategory={(id) => {
               const params = new URLSearchParams({
                 category: String(id),
-                from: range.from.toISOString(),
-                to: range.to.toISOString(),
+                from: period.from.toISOString(),
+                to: period.to.toISOString(),
               });
 
               navigate(`/transactions?${params.toString()}`);

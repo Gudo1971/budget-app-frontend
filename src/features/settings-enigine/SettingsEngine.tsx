@@ -41,7 +41,7 @@ export function SettingsEngine({ config }: { config: SettingsItem[] }) {
 
   const [order, setOrder] = useState<string[]>(config.map((c) => c.key));
   const [enabled, setEnabled] = useState<Record<string, boolean>>(
-    Object.fromEntries(config.map((c) => [c.key, true]))
+    Object.fromEntries(config.map((c) => [c.key, true])),
   );
 
   const [openPreview, setOpenPreview] = useState<string | null>(null);

@@ -27,7 +27,7 @@ export function useDashboardData() {
       .length,
   }));
 
-  const FIXED_COST_CATEGORY_IDS = [7, 6]; // Woonkosten, Abonnementen (IDs)
+  const FIXED_COST_CATEGORY_IDS = [7, 6];
 
   const fixedCostTransactions = uiTransactions.filter((t) =>
     FIXED_COST_CATEGORY_IDS.includes(t.category_id ?? 0),
@@ -58,6 +58,9 @@ export function useDashboardData() {
     0,
   ).getDate();
 
+  const remainingBudget = budget - spent;
+  const daysLeft = daysInPeriod - daysPassed;
+
   const stressPercentage = Math.round(
     calculateRealisticStress({
       budget,
@@ -76,8 +79,10 @@ export function useDashboardData() {
     fixedCostBreakdown,
     spent,
     budget,
+    remainingBudget,
     daysPassed,
     daysInPeriod,
+    daysLeft,
     stressPercentage,
     sorted,
   };

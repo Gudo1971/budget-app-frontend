@@ -38,9 +38,21 @@ export const dashboardSettingsConfig: SettingsItem[] = [
     key: "budget",
     label: "Budgetoverzicht",
     preview: function BudgetPreview() {
+      const data = useDashboardData();
+
+      const remainingBudget = data.budget - data.spent;
+
       return (
         <InsightsCarousel initialSlide={1}>
-          <BudgetProgressCard />
+          <BudgetProgressCard
+            budget={data.budget}
+            spent={data.spent}
+            stressScore={data.stressPercentage}
+            remainingBudget={remainingBudget}
+            daysPassed={data.daysPassed}
+            daysInPeriod={data.daysInPeriod}
+            daysLeft={data.daysLeft}
+          />
         </InsightsCarousel>
       );
     },
@@ -54,7 +66,12 @@ export const dashboardSettingsConfig: SettingsItem[] = [
 
       return (
         <InsightsCarousel initialSlide={2}>
-          <CategoryStatsCard stats={data.categoryStats} />
+          <CategoryStatsCard
+            stats={data.categoryStats.map((c, i) => ({
+              id: i + 1,
+              ...c,
+            }))}
+          />
         </InsightsCarousel>
       );
     },

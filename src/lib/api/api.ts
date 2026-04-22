@@ -75,6 +75,29 @@ export async function apiPatch<T>(
   return data as T;
 }
 
+export async function apiPut(url: string, body: any) {
+  const base = import.meta.env.VITE_API_URL;
+
+  if (!base) {
+    console.error("❌ VITE_API_URL is undefined!");
+  }
+
+  const res = await fetch(base + url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    throw new Error(`PUT ${url} failed`);
+  }
+
+  return res.json();
+}
+
 export async function apiDelete<T>(
   path: string,
   options: RequestInit = {},

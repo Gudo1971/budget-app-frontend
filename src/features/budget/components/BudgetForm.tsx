@@ -9,44 +9,69 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { saveBudget } from "../api/budgetApi";
+
+import { saveBudget, updateBudget } from "../api/budgetApi";
 import { useBudget } from "../hooks/useBudget";
 import { useDateFilter } from "@/context/DateFilterContext";
 
+import { IconButton } from "@chakra-ui/react";
+import { FiSettings } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import { useNeonColor } from "@/hooks/useNeonColor";
 
-export function BudgetForm() {
+// ⭐ FIX: props typen
+type BudgetFormProps = {
+  month: string; // ⭐ maand komt van BudgetPage
+  suggested: number | null;
+  message: string;
+  onUpdated: () => void | Promise<void>;
+};
+
+export function BudgetForm({
+  month,
+  suggested,
+  message,
+  onUpdated,
+}: BudgetFormProps) {
+  const navigate = useNavigate();
+
   const toast = useToast();
-  const { range } = useDateFilter();
-  const month = range.from.toISOString().slice(0, 7);
 
   const { budget, refetch } = useBudget(month);
 
-  const [value, setValue] = useState(budget?.amount ?? 0);
+  // ⭐ Startwaarde bepalen
+  const initialValue =
+    budget?.total_budget ??
+    (suggested !== null && suggested !== undefined ? suggested : 0);
+
+  const [value, setValue] = useState(initialValue);
   const [loading, setLoading] = useState(false);
 
-  // Sync value when budget loads
+  // Sync wanneer budget of suggested verandert
   useEffect(() => {
-    if (budget?.amount != null) {
-      setValue(budget.amount);
+    if (budget?.total_budget != null) {
+      setValue(budget.total_budget);
+    } else if (suggested != null) {
+      setValue(suggested);
     }
-  }, [budget]);
+  }, [budget, suggested]);
 
   const bg = useColorModeValue("rgba(255,255,255,0.06)", "rgba(0,0,0,0.35)");
   const border = useColorModeValue("whiteAlpha.300", "whiteAlpha.200");
-
-  // Dynamische neon kleur op basis van maand
   const neon = useNeonColor(month);
 
   const handleSave = async () => {
     try {
       setLoading(true);
 
-      await saveBudget({
-        amount: value,
-        month,
-        userId: "demo-user",
-      });
+      if (budget) {
+        await updateBudget(month, value);
+      } else {
+        await saveBudget({
+          month,
+          total_budget: value,
+        });
+      }
 
       toast({
         title: "Budget opgeslagen",
@@ -54,7 +79,7 @@ export function BudgetForm() {
         duration: 2000,
       });
 
-      refetch();
+      await onUpdated(); // ⭐ UI update direct
     } catch (err) {
       toast({
         title: "Opslaan mislukt",
@@ -85,6 +110,21 @@ export function BudgetForm() {
         <Text fontSize="sm" color="gray.400">
           Stel je maandbudget in
         </Text>
+
+        <IconButton
+          aria-label="Instellingen"
+          icon={<FiSettings />}
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/budget/settings")}
+          _hover={{ color: neon.color }} // ⭐ correcte neon kleur
+        />
+
+        {message && (
+          <Text fontSize="sm" color="gray.400">
+            {message}
+          </Text>
+        )}
 
         <NumberInput
           value={value}

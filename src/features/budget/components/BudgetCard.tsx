@@ -1,75 +1,106 @@
 import {
   Box,
-  VStack,
   Text,
-  Skeleton,
-  useColorModeValue,
+  Button,
+  Collapse,
+  useDisclosure,
+  VStack,
+  HStack,
+  Progress,
+  useColorMode,
+  useTheme,
 } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
-import { useDateFilter } from "@/context/DateFilterContext";
-import { useBudgetAmount } from "../hooks/useBudgetAmount";
 
-import { useNeonColor } from "@/hooks/useNeonColor";
+// ✔ Props type — clean, simpel, geen coupling
+type BudgetCardProps = {
+  budget: number;
+  total_budget: number;
+  spent: number;
+  remaining: number;
+  onEdit: () => void;
+};
 
-export function BudgetCard() {
-  const navigate = useNavigate();
-  const { range } = useDateFilter();
-  const month = range.from.toISOString().slice(0, 7);
+export function BudgetCard({
+  budget,
+  total_budget,
+  spent,
+  remaining,
+  onEdit,
+}: BudgetCardProps) {
+  const { isOpen, onToggle } = useDisclosure();
+  const { colorMode } = useColorMode();
+  const theme = useTheme();
 
-  const { amount: budget, loading } = useBudgetAmount(month);
+  const text =
+    colorMode === "light" ? theme.colors.light.text : theme.colors.dark.text;
 
-  const bg = useColorModeValue("rgba(255,255,255,0.06)", "rgba(0,0,0,0.35)");
-  const border = useColorModeValue("whiteAlpha.300", "whiteAlpha.200");
+  const surface =
+    colorMode === "light"
+      ? theme.colors.light.surface
+      : theme.colors.dark.surface;
 
-  // Dynamische neon kleur op basis van maand
-  const neon = useNeonColor(month);
+  const border =
+    colorMode === "light"
+      ? theme.colors.light.border
+      : theme.colors.dark.border;
 
-  // Placeholder until transactions hook is ready
-  const totalSpent = 2776;
-  const leftover = budget ? budget - totalSpent : 0;
+  const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
 
   return (
     <Box
+      w="full"
       p={4}
-      borderRadius="lg"
-      bg={bg}
       border="1px solid"
       borderColor={border}
-      backdropFilter="blur(8px)"
-      boxShadow={`0 0 25px ${neon.glow}`}
-      cursor="pointer"
-      onClick={() => navigate("/budget")}
-      transition="0.25s ease"
-      _hover={{
-        transform: "scale(1.02)",
-        boxShadow: `0 0 35px ${neon.glow}`,
-      }}
+      borderRadius="lg"
+      bg={surface}
+      boxShadow="0 0 12px rgba(0, 255, 255, 0.08)"
     >
-      <VStack align="stretch" spacing={1}>
-        <Text fontSize="sm" color="gray.400">
-          Budget
+      <VStack align="start" spacing={3}>
+        {/* Hoofdweergave */}
+        <Text fontSize="2xl" fontWeight="bold" color={text}>
+          €{total_budget || 0}
         </Text>
 
-        {loading ? (
-          <Skeleton height="20px" />
-        ) : (
-          <Text
-            fontSize="lg"
-            fontWeight="bold"
-            bgGradient={`linear(to-r, ${neon.text}, ${neon.color})`}
-            bgClip="text"
-          >
-            €{totalSpent} van €{budget ?? 0}
-          </Text>
-        )}
+        <Text fontSize="sm" opacity={0.7} color={text}>
+          Maandbudget
+        </Text>
 
-        {!loading && (
-          <Text fontSize="sm" color={leftover >= 0 ? neon.color : "red.300"}>
-            {leftover >= 0
-              ? `€${leftover} over`
-              : `€${Math.abs(leftover)} overspent`}
-          </Text>
-        )}
+        <HStack spacing={3}>
+          <Button size="sm" variant="outline" onClick={onEdit}>
+            Wijzig budget
+          </Button>
+
+          <Button size="sm" variant="ghost" onClick={onToggle}>
+            {isOpen ? "Details verbergen" : "Details tonen"}
+          </Button>
+        </HStack>
+
+        {/* Collapse met details */}
+        <Collapse in={isOpen} animateOpacity>
+          <VStack align="start" spacing={3} mt={3}>
+            <HStack justify="space-between" w="full">
+              <Text color={text}>Uitgegeven:</Text>
+              <Text fontWeight="bold" color={text}>
+                €{spent}
+              </Text>
+            </HStack>
+
+            <HStack justify="space-between" w="full">
+              <Text color={text}>Over:</Text>
+              <Text fontWeight="bold" color={text}>
+                €{remaining}
+              </Text>
+            </HStack>
+
+            <Progress
+              value={percentage}
+              w="full"
+              borderRadius="md"
+              colorScheme="cyan"
+            />
+          </VStack>
+        </Collapse>
       </VStack>
     </Box>
   );

@@ -12,10 +12,11 @@ export function useBudget(month: string) {
       setLoading(true);
       setError(null);
 
-      const res = await getBudget(month);
-      setBudget(res ?? null);
+      const res = await getBudget(month); // ⭐ res is Budget | null
+      setBudget(res);
     } catch (err: any) {
       setError(err.message ?? "Kon budget niet laden");
+      setBudget(null);
     } finally {
       setLoading(false);
     }
