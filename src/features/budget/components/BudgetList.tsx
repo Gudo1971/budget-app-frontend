@@ -12,6 +12,8 @@ import type { SubBudget } from "../types/SubBudget";
 import { useNeonColor } from "@/hooks/useNeonColor";
 import { BudgetAllocationBar } from "./BudgetAllocationBar";
 
+import { useNavigate } from "react-router-dom";
+
 type BudgetListProps = {
   budget: Budget | null;
   subBudgets: SubBudget[];
@@ -19,8 +21,7 @@ type BudgetListProps = {
 };
 
 export function BudgetList({ budget, subBudgets, loading }: BudgetListProps) {
-  // ⭐ categorieën data zit nu in subBudgets
-
+  const navigate = useNavigate();
   const bg = useColorModeValue("rgba(255,255,255,0.06)", "rgba(0,0,0,0.35)");
   const border = useColorModeValue("whiteAlpha.300", "whiteAlpha.200");
 
@@ -49,6 +50,12 @@ export function BudgetList({ budget, subBudgets, loading }: BudgetListProps) {
   const subCount = subBudgets.length;
   const totalCount = 1 + subCount;
 
+  // ⭐ Percentage berekenen
+  const allocated = subBudgets.reduce((sum, sb) => sum + sb.amount, 0);
+  const percentage = budget?.total_budget
+    ? Math.round((allocated / budget.total_budget) * 100)
+    : 0;
+
   return (
     <VStack align="stretch" spacing={3}>
       <Text fontSize="sm" color="gray.400">
@@ -64,6 +71,8 @@ export function BudgetList({ budget, subBudgets, loading }: BudgetListProps) {
         backdropFilter="blur(8px)"
         boxShadow={`0 0 25px ${neon.glow}`}
         transition="0.25s ease"
+        cursor="pointer"
+        onClick={() => navigate("/budget/overview")}
         _hover={{
           transform: "scale(1.015)",
           boxShadow: `0 0 35px ${neon.glow}`,
@@ -90,13 +99,18 @@ export function BudgetList({ budget, subBudgets, loading }: BudgetListProps) {
               Verdeeld over {totalCount} budget{totalCount === 1 ? "" : "ten"}
             </Text>
 
+            {/* ⭐ Nieuwe percentage regel */}
+            <Text fontSize="sm" color="gray.400">
+              {percentage}% van je totale budget is verdeeld in subbudgetten
+            </Text>
+
             <Text fontSize="sm" color="gray.400">
               Voor {budget.month}
             </Text>
 
             <BudgetAllocationBar
               total={budget.total_budget}
-              segments={segments} // ⭐ nu correct getype
+              segments={segments}
             />
           </VStack>
         )}

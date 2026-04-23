@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiGet } from "../lib/api/api";
-import type { Transaction } from "@shared/types/Transaction";
+import type { Transaction } from "@/shared/types/Transaction";
 
 type TransactionsResponse = {
   success: boolean;
@@ -8,45 +8,46 @@ type TransactionsResponse = {
   error: string | null;
 };
 
-export function useTransactions(refreshKey?: string) {
+export function useTransactions(
+  refreshKey?: string,
+  from?: string,
+  to?: string,
+) {
   const [data, setData] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const abortRef = useRef<AbortController | null>(null);
-
   const fetchTransactions = useCallback(async () => {
     try {
-      if (abortRef.current) abortRef.current.abort();
-
-      const controller = new AbortController();
-      abortRef.current = controller;
-
       setLoading(true);
       setError(null);
 
-      const res = await apiGet<TransactionsResponse>("/transactions", {
-        signal: controller.signal,
-      });
+      const query = new URLSearchParams();
 
-      if (!controller.signal.aborted) {
-        setData(res.data);
-      }
+      // ⭐ Alleen toevoegen als ze bestaan
+      if (from) query.append("from", from);
+      if (to) query.append("to", to);
+
+      // ⭐ Als er GEEN from/to zijn → haal ALLE transacties op
+      const url =
+        query.toString().length > 0
+          ? `/transactions?${query.toString()}`
+          : "/transactions";
+
+      const res = await apiGet<TransactionsResponse>(url);
+
+      setData([...res.data]); // nieuwe referentie
     } catch (err: any) {
-      if (err.name === "AbortError") return;
       setError(err.message ?? "Onbekende fout");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [from, to]);
 
   useEffect(() => {
+    // ⭐ ALTIJD fetchen — ook zonder from/to
     fetchTransactions();
-
-    return () => {
-      if (abortRef.current) abortRef.current.abort();
-    };
-  }, [fetchTransactions, refreshKey]);
+  }, [refreshKey, from, to]);
 
   return {
     data,

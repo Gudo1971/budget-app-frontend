@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import { FiImage } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import type { Transaction } from "@shared/types/Transaction";
+import type { Transaction } from "@/shared/types/Transaction";
 
 type Props = {
   transaction: Transaction;

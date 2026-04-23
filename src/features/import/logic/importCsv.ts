@@ -1,5 +1,5 @@
 import { detectBank } from "./bankDetector";
-import { parseRabobankRow } from "./parsers/parseRabobank";
+import { parseRabobank } from "./parsers/parseRabobank";
 import { parseIngRow } from "./parsers/parseIng";
 
 export function importCsv(rows: any[]) {
@@ -10,7 +10,7 @@ export function importCsv(rows: any[]) {
 
   switch (bank) {
     case "rabobank":
-      parser = parseRabobankRow;
+      parser = parseRabobank;
       break;
     case "ing":
       parser = parseIngRow;

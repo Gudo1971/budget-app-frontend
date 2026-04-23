@@ -7,7 +7,7 @@ import {
   Flex,
   useColorModeValue,
 } from "@chakra-ui/react";
-import type { FilterPanelItem } from "@shared/types/period";
+import type { FilterPanelItem } from "@/shared/types/period";
 
 type FilterPanelProps = {
   title: string;

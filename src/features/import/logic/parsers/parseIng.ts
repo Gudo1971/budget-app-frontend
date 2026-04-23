@@ -1,5 +1,5 @@
 // logic/parsers/parseIng.ts
-import { NormalizedTransaction } from "@shared/types/NormalizedTransaction";
+import { NormalizedTransaction } from "@/shared/types/NormalizedTransaction";
 import { detectIncome } from "../detectIncome";
 
 export function parseIngRow(row: any): NormalizedTransaction {

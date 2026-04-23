@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react";
 import { FunnelSettingsIcon } from "../../funnel-settings/FunnelSettingsIcon";
 
-import type { WeekInfo } from "@shared/types/period";
+import type { WeekInfo } from "@/shared/types/period";
 import type { WeekListProps } from "../types/periodSelector";
 
 // TEMP: placeholder weeks until dateRanges.ts is ready

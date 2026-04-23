@@ -1,6 +1,6 @@
 import { useTransactions } from "@/hooks/useTransactions";
 import { calculateRealisticStress } from "@/lib/ai/realisticInsights";
-import { getCategoryName } from "@shared/constants/categories_old";
+import { getCategoryName } from "@/shared/constants/categories";
 
 export function useDashboardData() {
   const { data: transactions = [] } = useTransactions();

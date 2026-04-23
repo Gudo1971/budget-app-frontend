@@ -14,6 +14,10 @@ import { UploadReceiptEntry } from "./features/settings-enigine/panels/UploadRec
 import { BudgetPage } from "./features/budget/BudgetPage";
 import BudgetSettingsPage from "./features/budget/pages/BudgetSettingsPage";
 import { DashboardPeriodProvider } from "./context/DashboardPeriodContext";
+import { BudgetOverviewContainer } from "./pages/budget/BudgetOverviewContainer";
+import { BudgetDetailPage } from "@/features/budget/pages/BudgetDetailPage";
+
+<Route path="/budget/:id" element={<BudgetDetailPage />} />;
 
 export default function App() {
   return (
@@ -33,7 +37,9 @@ export default function App() {
           element={<TransactionSettingsPage />}
         />
         <Route path="/budget" element={<BudgetPage />} />
+        <Route path="/budget/:id" element={<BudgetDetailPage />} />;
         <Route path="/budget/settings" element={<BudgetSettingsPage />} />
+        <Route path="/budget/overview" element={<BudgetOverviewContainer />} />
         <Route path="/receipts" element={<ReceiptListPage />} />
         <Route path="/upload-receipt" element={<UploadReceiptEntry />} />
         <Route path="/receipts/archive" element={<ReceiptArchivePage />} />

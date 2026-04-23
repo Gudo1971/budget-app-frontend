@@ -1,7 +1,7 @@
 import { HStack, VStack, Text, Box } from "@chakra-ui/react";
 import { StressPill } from "../../stress/components/StressPill";
 import { StressBar } from "../../stress/components/StressBar";
-import { CATEGORY_MAP } from "@shared/constants/categories_old";
+import { CATEGORY_MAP } from "@/shared/constants/categories";
 
 type Props = {
   item: {

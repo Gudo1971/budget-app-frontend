@@ -1,4 +1,4 @@
-import type { WeekInfo } from "@shared/types/period";
+import type { WeekInfo } from "@/shared/types/period";
 
 export type MonthListProps = {
   year: number;

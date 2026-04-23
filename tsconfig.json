@@ -21,19 +21,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@shared/*": ["../shared/*"]
-    },
-
-    "ignoreDeprecations": "6.0"
+      "@/*": ["src/*"]
+    }
   },
-  "include": [
-    "src",
-    "../shared",
-    "src/components/PeriodSelector/components/MonthList.tsx",
-    "src/components/PeriodSelector/components/FilterPanel.tsx",
-    "src/components/PeriodSelector/PeriodSelector.tsx",
-    "src/components/PeriodSelector/components/WeekList.tsx",
-    "src/components/PeriodSelector/components/YearList.tsx"
-  ]
+  "include": ["src"]
 }

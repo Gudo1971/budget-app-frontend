@@ -1,4 +1,5 @@
 import {
+  Flex,
   Box,
   VStack,
   Text,
@@ -12,7 +13,6 @@ import { useState, useEffect } from "react";
 
 import { saveBudget, updateBudget } from "../api/budgetApi";
 import { useBudget } from "../hooks/useBudget";
-import { useDateFilter } from "@/context/DateFilterContext";
 
 import { IconButton } from "@chakra-ui/react";
 import { FiSettings } from "react-icons/fi";
@@ -107,18 +107,20 @@ export function BudgetForm({
       }}
     >
       <VStack align="stretch" spacing={3}>
-        <Text fontSize="sm" color="gray.400">
-          Stel je maandbudget in
-        </Text>
+        <Flex justify="space-between" align="center">
+          <Text fontSize="sm" color="gray.400">
+            Stel je maandbudget in
+          </Text>
 
-        <IconButton
-          aria-label="Instellingen"
-          icon={<FiSettings />}
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/budget/settings")}
-          _hover={{ color: neon.color }} // ⭐ correcte neon kleur
-        />
+          <IconButton
+            aria-label="Instellingen"
+            icon={<FiSettings />}
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/budget/settings")}
+            _hover={{ color: neon.color }}
+          />
+        </Flex>
 
         {message && (
           <Text fontSize="sm" color="gray.400">

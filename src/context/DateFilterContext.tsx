@@ -1,5 +1,10 @@
-import { createContext, useContext, useState } from "react";
-import { ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 
 type Mode = "year" | "month" | "week" | "day";
 
@@ -23,13 +28,13 @@ type DateFilterContextType = {
 const DateFilterContext = createContext<DateFilterContextType | null>(null);
 
 export function DateFilterProvider({ children }: { children: ReactNode }) {
+  // ⭐ Initial state
   const [state, setState] = useState<DateFilterState>(() => {
-    const now = new Date();
-    const first = new Date(now.getFullYear(), now.getMonth(), 1);
-    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const initialFrom = new Date("2026-03-01");
+    const initialTo = new Date("2026-03-31");
 
     return {
-      range: { from: first, to: last },
+      range: { from: initialFrom, to: initialTo },
       mode: "month",
     };
   });
@@ -80,6 +85,10 @@ export function DateFilterProvider({ children }: { children: ReactNode }) {
       mode,
     }));
   }
+
+  useEffect(() => {
+    updateRange(state.range);
+  }, []);
 
   return (
     <DateFilterContext.Provider

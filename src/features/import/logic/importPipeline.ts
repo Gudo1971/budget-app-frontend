@@ -4,7 +4,7 @@
 // detect → parse → map
 // ===============================================
 
-import { NormalizedTransaction } from "@shared/types/NormalizedTransaction";
+import { NormalizedTransaction } from "@/shared/types/NormalizedTransaction";
 import { autoCategory } from "./autoCategory";
 
 // -----------------------------------------------

@@ -5,7 +5,7 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useDateFilter } from "@/context/DateFilterContext";
 import type { DateRange } from "@/context/DateFilterContext";
 
-import { getCategoryName } from "@shared/constants/categories_old";
+import { getCategoryName } from "@/shared/constants/categories";
 
 // ⭐ Helper
 function isInRange(dateString: string, range: DateRange) {

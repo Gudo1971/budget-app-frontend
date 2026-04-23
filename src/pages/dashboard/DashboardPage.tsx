@@ -23,10 +23,11 @@ import {
   calculateRealisticStress,
   generateRealisticInsight,
 } from "@/lib/ai/realisticInsights";
+import { useAllTransactions } from "@/hooks/useAllTransactions";
 
-import { useDashboardPeriod } from "@/hooks/useDashboardPeriod";
 import { useTransactions } from "@/hooks/useTransactions";
-import { getCategoryName } from "@shared/constants/categories_old";
+import { useDateFilter } from "@/context/DateFilterContext";
+import { getCategoryName } from "@/shared/constants/categories";
 
 // --------------------------------------------------
 // ⭐ TYPES
@@ -36,23 +37,12 @@ type UITransaction = {
   id: string;
   date: string;
   amount: number | string;
-  category_id: number | null; // ⭐ FIX HIER
-};
-
-type Period = {
-  from: Date;
-  to: Date;
-  mode: "month" | "year" | "week" | "day";
+  category_id: number | null;
 };
 
 // --------------------------------------------------
 // ⭐ HELPERS
 // --------------------------------------------------
-
-function isInRange(dateString: string, range: Period) {
-  const d = new Date(dateString);
-  return d >= range.from && d <= range.to;
-}
 
 function extractAvailableMonths(transactions: { date: string }[]) {
   const set = new Set<string>();
@@ -67,30 +57,51 @@ function extractAvailableMonths(transactions: { date: string }[]) {
   return Array.from(set).sort().reverse();
 }
 
+function isInRange(dateString: string, from: Date, to: Date) {
+  const d = new Date(dateString);
+  return d >= from && d <= to;
+}
+
 // --------------------------------------------------
-// ⭐ DASHBOARD PAGE
+// ⭐ DASHBOARD PAGE 2.0
 // --------------------------------------------------
+
+// ... imports en helpers zoals bij jou
 
 export default function DashboardPage() {
   const { colorMode } = useColorMode();
   const navigate = useNavigate();
   const [activeCard, setActiveCard] = useState(0);
 
-  const { period, setPeriod } = useDashboardPeriod();
-  const { data: transactions = [] } = useTransactions();
+  const { range, setRange } = useDateFilter();
+
+  const fromDate = range.from;
+  const toDate = range.to;
+
+  const from = fromDate.toISOString().slice(0, 10);
+  const to = toDate.toISOString().slice(0, 10);
+
+  // alle transacties voor de maand-selector
+  const { data: allTransactions = [] } = useAllTransactions();
+
+  // gefilterde transacties voor de huidige periode
+  const { data: transactions = [], loading } = useTransactions(
+    `${from}-${to}`,
+    from,
+    to,
+  );
 
   const availableMonths = useMemo(
-    () => extractAvailableMonths(transactions),
-    [transactions],
+    () => extractAvailableMonths(allTransactions),
+    [allTransactions],
   );
 
   const uiTransactions: UITransaction[] = transactions
-    .filter((t) => isInRange(t.date, period))
+    .filter((t) => isInRange(t.date, fromDate, toDate))
     .map((t) => ({
       ...t,
       id: String(t.id),
     }));
-
   // --------------------------------------------------
   // ⭐ INKOMEN
   // --------------------------------------------------
@@ -145,14 +156,14 @@ export default function DashboardPage() {
   // --------------------------------------------------
 
   const daysInPeriod = new Date(
-    period.from.getFullYear(),
-    period.from.getMonth() + 1,
+    fromDate.getFullYear(),
+    fromDate.getMonth() + 1,
     0,
   ).getDate();
 
   const isCurrentMonth =
-    period.from.getMonth() === new Date().getMonth() &&
-    period.from.getFullYear() === new Date().getFullYear();
+    fromDate.getMonth() === new Date().getMonth() &&
+    fromDate.getFullYear() === new Date().getFullYear();
 
   const daysPassed = isCurrentMonth ? new Date().getDate() : daysInPeriod;
   const daysLeft = daysInPeriod - daysPassed;
@@ -262,15 +273,20 @@ export default function DashboardPage() {
         <Heading size="lg">Dashboard</Heading>
 
         <HStack spacing={3}>
+          {/* ⭐ FIXED SELECTOR — gebruikt fromDate */}
           <Select
-            value={`${period.from.getFullYear()}-${String(
-              period.from.getMonth() + 1,
+            value={`${fromDate.getFullYear()}-${String(
+              fromDate.getMonth() + 1,
             ).padStart(2, "0")}`}
             onChange={(e) => {
               const [year, month] = e.target.value.split("-");
-              const from = new Date(Number(year), Number(month) - 1, 1);
-              const to = new Date(Number(year), Number(month), 0);
-              setPeriod({ from, to, mode: "month" });
+              const newFrom = new Date(Number(year), Number(month) - 1, 1);
+              const newTo = new Date(Number(year), Number(month), 0);
+
+              setRange({
+                from: newFrom,
+                to: newTo,
+              });
             }}
             w="160px"
             size="sm"
@@ -368,8 +384,8 @@ export default function DashboardPage() {
             onSelectCategory={(id) => {
               const params = new URLSearchParams({
                 category: String(id),
-                from: period.from.toISOString(),
-                to: period.to.toISOString(),
+                from: from,
+                to: to,
               });
 
               navigate(`/transactions?${params.toString()}`);
