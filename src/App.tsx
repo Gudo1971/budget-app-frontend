@@ -17,8 +17,6 @@ import { DashboardPeriodProvider } from "./context/DashboardPeriodContext";
 import { BudgetOverviewContainer } from "./pages/budget/BudgetOverviewContainer";
 import { BudgetDetailPage } from "@/features/budget/pages/BudgetDetailPage";
 
-<Route path="/budget/:id" element={<BudgetDetailPage />} />;
-
 export default function App() {
   return (
     <Routes>
@@ -36,8 +34,7 @@ export default function App() {
           path="/transactions/settings"
           element={<TransactionSettingsPage />}
         />
-        <Route path="/budget" element={<BudgetPage />} />
-        <Route path="/budget/:id" element={<BudgetDetailPage />} />;
+
         <Route path="/budget/settings" element={<BudgetSettingsPage />} />
         <Route path="/budget/overview" element={<BudgetOverviewContainer />} />
         <Route path="/receipts" element={<ReceiptListPage />} />
@@ -45,6 +42,7 @@ export default function App() {
         <Route path="/receipts/archive" element={<ReceiptArchivePage />} />
         <Route path="/receipts/settings" element={<ReceiptSettingsPage />} />
         <Route path="/split/:id" element={<SplitPage />} />
+        <Route path="/budget/:year/:month" element={<BudgetDetailPage />} />
         <Route
           path="/debug/merchant-memory"
           element={<MerchantMemoryDebug />}

@@ -1,6 +1,6 @@
 // src/components/PremiumDonut.tsx
 import { Box, Text, VStack } from "@chakra-ui/react";
-import { useRef } from "react";
+import { useRef, useEffect, useLayoutEffect } from "react";
 import { useDonutSegments } from "@/hooks/useDonutSegments";
 
 type DonutTransaction = {
@@ -11,6 +11,7 @@ type DonutTransaction = {
 
 type PremiumDonutProps = {
   transactions: DonutTransaction[];
+  totalBudget?: number;
   size?: number;
   strokeWidth?: number;
   glow?: string;
@@ -21,6 +22,7 @@ type PremiumDonutProps = {
 
 export function PremiumDonut({
   transactions,
+  totalBudget,
   size = 280,
   strokeWidth = 32,
   glow = "rgba(255,255,255,0.25)",
@@ -35,6 +37,54 @@ export function PremiumDonut({
   );
 
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const gRef = useRef<SVGGElement | null>(null);
+
+  // ⭐ Maak een unieke key voor de SVG op basis van alle segment data
+  const svgKey = segments
+    .map((s) => `${s.category_id}:${s.amount}:${s.length.toFixed(2)}`)
+    .join("|");
+
+  // ⭐ FORCEER SVG UPDATE via direct DOM manipulation
+  useLayoutEffect(() => {
+    const g = gRef.current;
+    if (!g) return;
+
+    // Verwijder alle oude circles
+    while (g.firstChild) {
+      g.removeChild(g.firstChild);
+    }
+
+    // Maak nieuwe circles
+    segments.forEach((s) => {
+      const circle = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "circle",
+      );
+      circle.setAttribute("cx", String(size / 2));
+      circle.setAttribute("cy", String(size / 2));
+      circle.setAttribute("r", String(radius));
+      circle.setAttribute("fill", "transparent");
+      circle.setAttribute("stroke", s.color);
+      circle.setAttribute("stroke-width", String(strokeWidth));
+      circle.setAttribute("stroke-dasharray", `${s.length} ${circumference}`);
+      circle.setAttribute("stroke-dashoffset", String(-s.offset));
+      circle.setAttribute("stroke-linecap", "round");
+      circle.style.pointerEvents = "none";
+      g.appendChild(circle);
+    });
+
+    console.log("✨ DOM: Created", segments.length, "circles");
+  }, [segments, size, radius, strokeWidth, circumference]);
+
+  // ⭐ Debug: Log wanneer segments veranderen
+  useEffect(() => {
+    console.log("🍩 PremiumDonut - Segments updated:", segments.length);
+    console.log(
+      "Segment details:",
+      segments.map((s) => `${s.name}: €${s.amount} (${s.percentage}%)`),
+    );
+    console.log("SVG Key:", svgKey.substring(0, 50) + "...");
+  }, [segments, svgKey]);
 
   if (total === 0 || segments.length === 0) {
     return (
@@ -115,27 +165,7 @@ export function PremiumDonut({
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
-          {segments.map((s) => {
-            const active = hoverCategory === s.category_id;
-
-            return (
-              <circle
-                key={s.category_id}
-                cx={size / 2}
-                cy={size / 2}
-                r={radius}
-                fill="transparent"
-                stroke={s.color}
-                strokeWidth={active ? strokeWidth * 1.1 : strokeWidth}
-                strokeDasharray={`${s.length} ${circumference}`}
-                strokeDashoffset={-s.offset}
-                strokeLinecap="round"
-                style={{ pointerEvents: "none" }}
-              />
-            );
-          })}
-        </g>
+        <g ref={gRef} transform={`rotate(-90 ${size / 2} ${size / 2})`} />
       </svg>
 
       {/* CENTER LABEL */}
@@ -150,7 +180,7 @@ export function PremiumDonut({
         {!activeSegment && (
           <VStack spacing={0}>
             <Text fontSize="2xl" fontWeight="bold" color="white">
-              €{total.toFixed(2)}
+              €{(totalBudget ?? 0).toFixed(2)}
             </Text>
             <Text fontSize="sm" color="gray.400">
               Totaal budget

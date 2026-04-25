@@ -45,9 +45,15 @@ export function useTransactions(
   }, [from, to]);
 
   useEffect(() => {
-    // ⭐ ALTIJD fetchen — ook zonder from/to
+    // ⭐ Als refreshKey undefined is, niet fetchen (wacht op datums)
+    if (refreshKey === undefined) {
+      setLoading(false);
+      return;
+    }
+
+    // ⭐ Anders fetchen (ook zonder from/to voor alle transacties)
     fetchTransactions();
-  }, [refreshKey, from, to]);
+  }, [refreshKey, fetchTransactions]);
 
   return {
     data,

@@ -27,8 +27,9 @@ import {
 } from "@chakra-ui/react";
 import { HamburgerIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { Link, useLocation } from "react-router-dom";
-import { LanguageToggle } from "../../components/i18n/LanguageToggle";
-import { ColorModeToggle } from "../../components/ui/ColorModeToggle";
+import { useMemo } from "react";
+import { LanguageToggle } from "@/components/i18n/LanguageToggle";
+import { ColorModeToggle } from "@/components/ui/ColorModeToggle";
 
 export function Header() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -38,7 +39,18 @@ export function Header() {
 
   const isDashboard = location.pathname === "/";
   const isTransactions = location.pathname === "/transactions";
-  const isBudgets = location.pathname === "/budget";
+  const isBudgets = location.pathname.startsWith("/budget");
+
+  // Huidige maand voor budget link
+  const currentBudgetPath = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    console.log("Header (layout): Huidige datum:", now);
+    console.log("Header (layout): Year:", year, "Month:", month);
+    console.log("Header (layout): Budget path:", `/budget/${year}/${month}`);
+    return `/budget/${year}/${month}`;
+  }, []);
 
   // Desktop: alles onder /receipts is actief
   const isReceipts = location.pathname.startsWith("/receipts");
@@ -106,7 +118,7 @@ export function Header() {
 
             {/* Budgets */}
             <Link
-              to="/budget"
+              to={currentBudgetPath}
               style={{
                 pointerEvents: isBudgets ? "none" : "auto",
                 opacity: isBudgets ? 0.5 : 1,
@@ -196,7 +208,7 @@ export function Header() {
 
               {/* Budgets */}
               <Link
-                to="/budget"
+                to={currentBudgetPath}
                 onClick={isBudgets ? undefined : onClose}
                 style={{
                   pointerEvents: isBudgets ? "none" : "auto",

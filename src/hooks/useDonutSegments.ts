@@ -1,5 +1,5 @@
 // src/hooks/useDonutSegments.ts
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { CATEGORY_META } from "@/config/categoryMeta";
 
 export type DonutSegment = {
@@ -39,20 +39,46 @@ export function useDonutSegments(
   size: number,
   strokeWidth: number,
 ) {
-  const expenses = useMemo(
-    () => transactions.filter((t) => t.amount < 0),
+  // ⭐ Maak een stabiele hash van transactions voor dependency tracking
+  const transactionsHash = useMemo(
+    () => transactions.map((t) => `${t.category_id}:${t.amount}`).join("|"),
     [transactions],
   );
+
+  // ⭐ Debug: Log wanneer transactions veranderen
+  useEffect(() => {
+    console.log("🔍 useDonutSegments - transactions:", transactions.length);
+    console.log("First 3 transactions:", transactions.slice(0, 3));
+    console.log(
+      "Transactions hash:",
+      transactionsHash.substring(0, 50) + "...",
+    );
+  }, [transactions, transactionsHash]);
+
+  const expenses = useMemo(() => {
+    console.log(
+      "⚡ Filtering expenses from",
+      transactions.length,
+      "transactions",
+    );
+    return transactions.filter((t) => t.amount !== 0);
+  }, [transactions, transactionsHash]);
 
   const total = useMemo(
     () => expenses.reduce((sum, t) => sum + Math.abs(t.amount), 0),
     [expenses],
   );
 
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
+  const radius = useMemo(() => (size - strokeWidth) / 2, [size, strokeWidth]);
+  const circumference = useMemo(() => 2 * Math.PI * radius, [radius]);
 
   const segments: DonutSegment[] = useMemo(() => {
+    console.log(
+      "⚙️ useDonutSegments - Recalculating segments. Total:",
+      total,
+      "Expenses:",
+      expenses.length,
+    );
     if (total === 0) return [];
 
     const grouped = new Map<
@@ -81,16 +107,16 @@ export function useDonutSegments(
       (a, b) => b[1].amount - a[1].amount,
     );
 
+    console.log("🎯 useDonutSegments - Grouped categories:", grouped.size);
     let offset = 0;
     return sorted.map(([category_id, data], index) => {
       const value = data.amount / total;
       const length = value * circumference;
 
-      const baseColor = data.color;
       const color =
         sorted.length > 1
           ? colorPalette[index % colorPalette.length]
-          : baseColor;
+          : data.color;
 
       const seg: DonutSegment = {
         category_id,
