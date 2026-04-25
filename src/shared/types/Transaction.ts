@@ -21,11 +21,14 @@ export type Transaction = {
   category_id: number | null;
   subcategory_id?: number | null;
 
+  // ⭐ Type van transactie (nodig voor filtering)
+  type: "expense" | "income";
+
   recurring?: boolean;
 
   // Bon / AI
   receipt?: {
-    id: number; // ⭐ BELANGRIJK: toegevoegd
+    id: number;
     url: string;
     thumbnail?: string | null;
 
@@ -49,5 +52,5 @@ export type Transaction = {
     };
 
     thumbnailUrl?: string;
-  } | null; // ⭐ BELANGRIJK: nullable gemaakt
+  } | null;
 };
