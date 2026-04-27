@@ -6,8 +6,16 @@ export const budgetSettingsConfig = [
   {
     key: "subbudgets",
     label: "Sub‑budgetten",
-    preview: SubBudgetSettingsPreview,
-    actions: ({ openPreviewFor }: { openPreviewFor: (key: string) => void }) => (
+
+    preview: (props: { month?: string }) => (
+      <SubBudgetSettingsPreview {...props} />
+    ),
+
+    actions: ({
+      openPreviewFor,
+    }: {
+      openPreviewFor: (key: string) => void;
+    }) => (
       <HeaderIconButton
         label="Sub‑budgetten beheren"
         icon={<FiList />}

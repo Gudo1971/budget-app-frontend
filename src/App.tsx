@@ -40,7 +40,11 @@ export default function App() {
         <Route path="/receipts" element={<ReceiptListPage />} />
         <Route path="/upload-receipt" element={<UploadReceiptEntry />} />
         <Route path="/receipts/archive" element={<ReceiptArchivePage />} />
-        <Route path="/receipts/settings" element={<ReceiptSettingsPage />} />
+        <Route
+          path="/budget/settings/:year/:month"
+          element={<BudgetSettingsPage />}
+        />
+
         <Route path="/split/:id" element={<SplitPage />} />
         <Route path="/budget/:year/:month" element={<BudgetDetailPage />} />
         <Route

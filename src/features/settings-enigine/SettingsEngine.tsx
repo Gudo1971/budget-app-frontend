@@ -1,14 +1,6 @@
-import {
-  VStack,
-  Collapse,
-  Box,
-  Flex,
-  IconButton,
-  Text,
-} from "@chakra-ui/react";
-import { ArrowBackIcon } from "@chakra-ui/icons";
-import { useNavigate } from "react-router-dom";
+import { VStack, Collapse, Box } from "@chakra-ui/react";
 
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 import {
@@ -29,14 +21,29 @@ import {
 import { SortableHeader } from "./components/SortableHeader";
 import { BackButton } from "@/components/back-button/BackButton";
 
+// -------------------------------------------------------------
+// ⭐ TYPE-SAFE SETTINGS ITEM
+// -------------------------------------------------------------
 export type SettingsItem = {
   key: string;
   label: string;
-  preview: React.ComponentType;
+
+  // ⭐ preview-component krijgt props (zoals month)
+  preview: React.ComponentType<{ month?: string }>;
+
   actions?: (helpers: { openPreviewFor: (key: string) => void }) => JSX.Element;
 };
 
-export function SettingsEngine({ config }: { config: SettingsItem[] }) {
+// -------------------------------------------------------------
+// ⭐ PREMIUM SETTINGS ENGINE
+// -------------------------------------------------------------
+export function SettingsEngine({
+  config,
+  month,
+}: {
+  config: SettingsItem[];
+  month?: string;
+}) {
   const navigate = useNavigate();
 
   const [order, setOrder] = useState<string[]>(config.map((c) => c.key));
@@ -63,7 +70,9 @@ export function SettingsEngine({ config }: { config: SettingsItem[] }) {
     }
   };
 
-  // ⭐ MODE 2: Alleen de actieve tegel tonen
+  // -------------------------------------------------------------
+  // ⭐ MODE 2 — PREVIEW OPEN
+  // -------------------------------------------------------------
   if (openPreview) {
     const activeItem = config.find((c) => c.key === openPreview);
     if (!activeItem) return null;
@@ -91,7 +100,8 @@ export function SettingsEngine({ config }: { config: SettingsItem[] }) {
         >
           <Collapse in={true} animateOpacity>
             <Box mt={3}>
-              <PreviewComponent />
+              {/* ⭐ month wordt nu doorgegeven */}
+              <PreviewComponent month={month} />
             </Box>
           </Collapse>
         </SortableHeader>
@@ -99,7 +109,9 @@ export function SettingsEngine({ config }: { config: SettingsItem[] }) {
     );
   }
 
-  // ⭐ MODE 1: Geen preview open → toon alle tegels
+  // -------------------------------------------------------------
+  // ⭐ MODE 1 — ALLE TEGELS
+  // -------------------------------------------------------------
   return (
     <VStack w="full" align="stretch" spacing={6}>
       <BackButton />

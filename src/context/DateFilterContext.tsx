@@ -28,17 +28,20 @@ type DateFilterContextType = {
 const DateFilterContext = createContext<DateFilterContextType | null>(null);
 
 export function DateFilterProvider({ children }: { children: ReactNode }) {
-  // ⭐ Initial state
-  const [state, setState] = useState<DateFilterState>(() => {
-    const initialFrom = new Date("2026-03-01");
-    const initialTo = new Date("2026-03-31");
+  // ⭐ Initial state → huidige maand
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0 = januari
 
-    return {
-      range: { from: initialFrom, to: initialTo },
-      mode: "month",
-    };
+  const initialFrom = new Date(year, month, 1);
+  const initialTo = new Date(year, month + 1, 0);
+
+  const [state, setState] = useState<DateFilterState>({
+    range: { from: initialFrom, to: initialTo },
+    mode: "month",
   });
 
+  // ⭐ Mode detectie
   function detectMode(from: Date, to: Date): Mode {
     const diffDays = (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24);
 
@@ -72,6 +75,7 @@ export function DateFilterProvider({ children }: { children: ReactNode }) {
     return "month";
   }
 
+  // ⭐ Range setter
   function updateRange(newRange: DateRange) {
     setState({
       range: newRange,
@@ -79,6 +83,7 @@ export function DateFilterProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  // ⭐ Mode setter
   function updateMode(mode: Mode) {
     setState((prev) => ({
       ...prev,
@@ -86,6 +91,7 @@ export function DateFilterProvider({ children }: { children: ReactNode }) {
     }));
   }
 
+  // ⭐ Trigger initial fetch (maar alleen 1x)
   useEffect(() => {
     updateRange(state.range);
   }, []);

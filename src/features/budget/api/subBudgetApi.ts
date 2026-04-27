@@ -1,14 +1,17 @@
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api/api";
 import { SubBudget } from "../types/SubBudget";
 
+const USER_ID = "demo-user";
+
 /**
  * ⭐ GET — haal alle sub‑budgetten op voor een maand
- * Backend route: GET /api/sub-budgets/:month
  */
 export async function getSubBudgets(month: string): Promise<SubBudget[]> {
   if (!month || month === "undefined") return [];
 
-  const data = await apiGet<SubBudget[]>(`/sub-budgets/${month}`);
+  const data = await apiGet<SubBudget[]>(
+    `/sub-budgets/${month}?user_id=${USER_ID}`,
+  );
 
   return data ?? [];
 }
@@ -23,7 +26,7 @@ export async function createSubBudget(data: {
 }): Promise<SubBudget> {
   return apiPost<SubBudget>("/sub-budgets", {
     ...data,
-    userId: "demo-user",
+    user_id: USER_ID,
   });
 }
 
@@ -36,7 +39,7 @@ export async function updateSubBudget(
 ) {
   return apiPut(`/sub-budgets/${id}`, {
     ...data,
-    userId: "demo-user",
+    user_id: USER_ID,
   });
 }
 
@@ -44,5 +47,5 @@ export async function updateSubBudget(
  * ⭐ DELETE — sub‑budget verwijderen
  */
 export async function deleteSubBudget(id: number) {
-  return apiDelete(`/sub-budgets/${id}`);
+  return apiDelete(`/sub-budgets/${id}?user_id=${USER_ID}`);
 }

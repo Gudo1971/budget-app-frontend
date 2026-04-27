@@ -1,7 +1,7 @@
 import { HStack, VStack, IconButton, Text } from "@chakra-ui/react";
 import { FiImage, FiEdit } from "react-icons/fi";
 import { ReceiptIcon } from "@/components/icons/ReceiptIcon";
-import type { Transaction } from "@shared/types/Transaction";
+import type { Transaction } from "@/shared/types/Transaction";
 import type { Category } from "@/features/categories/types/Category";
 
 import { NeonCard } from "@/theme/neon/NeonCard";
@@ -30,7 +30,6 @@ export function TransactionCard({
 
   // ⭐ categoryName mag NOOIT undefined zijn
   const categoryName = category?.name ?? "Onbekend";
-  console.log("CATEGORYNAME:", categoryName);
 
   return (
     <NeonCard depth={2} categoryName={categoryName}>

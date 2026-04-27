@@ -8,23 +8,24 @@ import {
   Button,
   useToast,
   useColorModeValue,
+  IconButton,
 } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { saveBudget, updateBudget } from "../api/budgetApi";
 import { useBudget } from "../hooks/useBudget";
 
-import { IconButton } from "@chakra-ui/react";
 import { FiSettings } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useNeonColor } from "@/hooks/useNeonColor";
 
-// ⭐ FIX: props typen
 type BudgetFormProps = {
-  month: string; // ⭐ maand komt van BudgetPage
+  month: string;
   suggested: number | null;
   message: string;
   onUpdated: () => void | Promise<void>;
+  isSaved: boolean; // ⭐ NIEUW
+  onRequireSave: () => void; // ⭐ NIEUW
 };
 
 export function BudgetForm({
@@ -32,24 +33,29 @@ export function BudgetForm({
   suggested,
   message,
   onUpdated,
+  isSaved,
+  onRequireSave, // ⭐ NIEUW
 }: BudgetFormProps) {
   const navigate = useNavigate();
-
   const toast = useToast();
+  const { budget } = useBudget(month);
 
-  const { budget, refetch } = useBudget(month);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // ⭐ Startwaarde bepalen
-  const initialValue =
-    budget?.total_budget ??
-    (suggested !== null && suggested !== undefined ? suggested : 0);
+  const hasBudget =
+    budget &&
+    typeof budget.total_budget === "number" &&
+    budget.total_budget > 0;
+
+  const initialValue = hasBudget ? budget.total_budget : (suggested ?? 0);
 
   const [value, setValue] = useState(initialValue);
   const [loading, setLoading] = useState(false);
 
-  // Sync wanneer budget of suggested verandert
+  const isSuggested = !hasBudget;
+
   useEffect(() => {
-    if (budget?.total_budget != null) {
+    if (hasBudget) {
       setValue(budget.total_budget);
     } else if (suggested != null) {
       setValue(suggested);
@@ -64,13 +70,10 @@ export function BudgetForm({
     try {
       setLoading(true);
 
-      if (budget) {
+      if (hasBudget) {
         await updateBudget(month, value);
       } else {
-        await saveBudget({
-          month,
-          total_budget: value,
-        });
+        await saveBudget({ month, total_budget: value });
       }
 
       toast({
@@ -79,7 +82,7 @@ export function BudgetForm({
         duration: 2000,
       });
 
-      await onUpdated(); // ⭐ UI update direct
+      await onUpdated();
     } catch (err) {
       toast({
         title: "Opslaan mislukt",
@@ -101,24 +104,39 @@ export function BudgetForm({
       backdropFilter="blur(8px)"
       boxShadow={`0 0 25px ${neon.glow}`}
       transition="0.25s ease"
+      minH="140px"
       _hover={{
         transform: "scale(1.01)",
         boxShadow: `0 0 35px ${neon.glow}`,
       }}
     >
       <VStack align="stretch" spacing={3}>
-        <Flex justify="space-between" align="center">
-          <Text fontSize="sm" color="gray.400">
-            Stel je maandbudget in
-          </Text>
+        <Flex justify="space-between" align="flex-start" w="100%">
+          <VStack align="flex-start" spacing={0} flex="1">
+            <Text fontSize="sm" color="gray.400">
+              Stel je maandbudget in
+            </Text>
 
+            {suggested !== null && suggested > 0 && !hasBudget && (
+              <Text fontSize="xs" color="orange.300" mt={1} lineHeight="1.2">
+                Slim voorstel: €{suggested.toFixed(2)}
+              </Text>
+            )}
+          </VStack>
+
+          {/* ⭐ GEAR ICON MET CORRECTE BLOKKERING */}
           <IconButton
-            aria-label="Instellingen"
             icon={<FiSettings />}
+            aria-label="Instellingen"
             variant="ghost"
-            size="sm"
-            onClick={() => navigate("/budget/settings")}
-            _hover={{ color: neon.color }}
+            color="gray.300"
+            onClick={() => {
+              if (!isSaved) {
+                onRequireSave(); // ⭐ DIT WERKT ALTIJD
+                return;
+              }
+              navigate("/budget/settings");
+            }}
           />
         </Flex>
 
@@ -135,16 +153,25 @@ export function BudgetForm({
           precision={2}
         >
           <NumberInputField
+            ref={inputRef}
             placeholder="Bijv. 3000"
             fontSize="lg"
             fontWeight="bold"
-            borderColor={neon.color}
+            color={isSuggested ? "gray.400" : "white"}
+            borderColor={isSuggested ? "orange.300" : neon.color}
             _focus={{
               borderColor: neon.color,
               boxShadow: `0 0 15px ${neon.glow}`,
+              color: "white",
             }}
           />
         </NumberInput>
+
+        {!hasBudget && (
+          <Text fontSize="xs" color="orange.300">
+            Dit is een voorgesteld bedrag. Sla op om te bevestigen.
+          </Text>
+        )}
 
         <Button
           onClick={handleSave}

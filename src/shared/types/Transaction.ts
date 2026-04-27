@@ -1,32 +1,22 @@
 export type Transaction = {
   id: number;
-
-  // Datums
   date: string;
   transaction_date?: string;
-
-  // Beschrijving & bedrag
   description?: string;
   amount: number;
 
-  // Merchant
   merchant?: string;
   merchant_raw?: string;
 
-  // Koppelingen
   receipt_id: number | null;
   user_id?: string;
 
-  // Categorieën
   category_id: number | null;
   subcategory_id?: number | null;
 
-  // ⭐ Type van transactie (nodig voor filtering)
   type: "expense" | "income";
-
   recurring?: boolean;
 
-  // Bon / AI
   receipt?: {
     id: number;
     url: string;

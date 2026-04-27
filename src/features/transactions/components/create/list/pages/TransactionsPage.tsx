@@ -13,22 +13,19 @@ import { useDateFilter } from "@/context/DateFilterContext";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 
-import type { Transaction } from "@shared/types/Transaction";
-
 export default function TransactionsPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [showFilters, setShowFilters] = useState(false);
-  const neonBlue = "#00C8FF";
-
-  // ⭐ Freeze list while modal is open
   const [freezeList, setFreezeList] = useState(false);
+
+  const neonBlue = "#00C8FF";
 
   // ⭐ DateFilterContext
   const { range, setRange } = useDateFilter();
 
-  // ⭐ URL → DateFilterContext sync
+  // ⭐ Sync URL → DateFilterContext
   useEffect(() => {
     const params = new URLSearchParams(location.search);
 
@@ -43,8 +40,24 @@ export default function TransactionsPage() {
     }
   }, [location.search, setRange]);
 
-  // ⭐ Fetch ALL transactions once
-  const { data: transactions } = useTransactions();
+  // Als range nog niet gezet is: voorkom crashes
+  if (!range?.from || !range?.to) {
+    return (
+      <PageLayout title="Transacties">
+        {showFilters && <PeriodSelector />}
+      </PageLayout>
+    );
+  }
+
+  // ⭐ Convert range → YYYY-MM-DD
+  const from = range.from.toISOString().slice(0, 10);
+  const to = range.to.toISOString().slice(0, 10);
+
+  // ⭐ RefreshKey = "2026-04"
+  const refreshKey = from.slice(0, 7);
+
+  // ⭐ Fetch transactions for the selected month
+  const { data: transactions = [] } = useTransactions(refreshKey, from, to);
 
   // ⭐ Fetch categories
   const { categories, refetch: refetchCategories } = useCategories();
@@ -56,18 +69,18 @@ export default function TransactionsPage() {
 
   // ⭐ Filter op date + category + type
   const filtered = transactions.filter((t) => {
-    const d = new Date(t.date);
+    const dateField = t.date || t.transaction_date;
+    if (!dateField) return false;
+
+    const d = new Date(dateField);
     const inRange = d >= range.from && d <= range.to;
 
-    // ⭐ TYPE FILTER
+    // TYPE FILTER
     let inType = true;
-    if (type === "income") {
-      inType = t.amount > 0;
-    } else if (type === "expenses") {
-      inType = t.amount < 0;
-    }
+    if (type === "income") inType = t.amount > 0;
+    if (type === "expenses") inType = t.amount < 0;
 
-    // ⭐ CATEGORY FILTER — FIX: overslaan als modal open is
+    // CATEGORY FILTER — skip when modal open
     let inCategory = true;
 
     if (!freezeList) {
@@ -83,15 +96,6 @@ export default function TransactionsPage() {
 
     return inRange && inCategory && inType;
   });
-
-  // ⭐ Handlers for modal open/close
-  const handleModalOpen = () => {
-    setFreezeList(true);
-  };
-
-  const handleModalClose = () => {
-    setFreezeList(false);
-  };
 
   return (
     <PageLayout
