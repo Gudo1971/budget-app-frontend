@@ -111,7 +111,7 @@ export function SubBudgetList({
                 isLoading={loading}
                 onClick={handleConfirmDelete}
               >
-                Verwijderen
+                a Verwijderen
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

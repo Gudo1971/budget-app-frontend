@@ -2,22 +2,29 @@
 import { Box, Text, VStack } from "@chakra-ui/react";
 import { useRef, useEffect, useLayoutEffect } from "react";
 import { useDonutSegments } from "@/hooks/useDonutSegments";
-
-type DonutTransaction = {
-  amount: number;
-  category_id: number | null;
-  category_name?: string;
-};
-
-type PremiumDonutProps = {
-  transactions: DonutTransaction[];
+interface PremiumDonutProps {
+  transactions: {
+    amount: number;
+    category_id: number | null;
+    category_name?: string;
+    emoji?: string;
+    name?: string;
+    percentage?: number;
+  }[];
   totalBudget?: number;
   size?: number;
   strokeWidth?: number;
   glow?: string;
   hoverCategory: number | null;
   setHoverWithDelay: (id: number | null) => void;
-  setIsHoverLocked: (v: boolean) => void;
+
+  isHoverLocked: boolean;
+}
+
+type DonutTransaction = {
+  amount: number;
+  category_id: number | null;
+  category_name?: string;
 };
 
 export function PremiumDonut({
@@ -28,7 +35,8 @@ export function PremiumDonut({
   glow = "rgba(255,255,255,0.25)",
   hoverCategory,
   setHoverWithDelay,
-  setIsHoverLocked,
+
+  isHoverLocked,
 }: PremiumDonutProps) {
   const { segments, total, radius, circumference } = useDonutSegments(
     transactions,
@@ -44,7 +52,7 @@ export function PremiumDonut({
     .map((s) => `${s.category_id}:${s.amount}:${s.length.toFixed(2)}`)
     .join("|");
 
-  // ⭐ FORCEER SVG UPDATE via direct DOM manipulation
+  // ⭐ FORCEER SVG UPDATE via direct DOM manipulation + HIGHLIGHTING
   useLayoutEffect(() => {
     const g = gRef.current;
     if (!g) return;
@@ -56,6 +64,18 @@ export function PremiumDonut({
 
     // Maak nieuwe circles
     segments.forEach((s) => {
+      const isHighlighted = hoverCategory === s.category_id;
+
+      if (isHighlighted) {
+        console.log(
+          "✨ Highlighting segment:",
+          s.category_id,
+          s.name,
+          "hoverCategory:",
+          hoverCategory,
+        );
+      }
+
       const circle = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "circle",
@@ -65,16 +85,25 @@ export function PremiumDonut({
       circle.setAttribute("r", String(radius));
       circle.setAttribute("fill", "transparent");
       circle.setAttribute("stroke", s.color);
-      circle.setAttribute("stroke-width", String(strokeWidth));
+      circle.setAttribute(
+        "stroke-width",
+        String(isHighlighted ? strokeWidth + 4 : strokeWidth),
+      );
       circle.setAttribute("stroke-dasharray", `${s.length} ${circumference}`);
       circle.setAttribute("stroke-dashoffset", String(-s.offset));
       circle.setAttribute("stroke-linecap", "round");
       circle.style.pointerEvents = "none";
+      circle.style.transition = "stroke-width 0.2s ease, filter 0.2s ease";
+
+      if (isHighlighted) {
+        circle.style.filter = `drop-shadow(0 0 8px ${s.color}) drop-shadow(0 0 16px ${s.color})`;
+      }
+
       g.appendChild(circle);
     });
 
     console.log("✨ DOM: Created", segments.length, "circles");
-  }, [segments, size, radius, strokeWidth, circumference]);
+  }, [segments, size, radius, strokeWidth, circumference, hoverCategory]);
 
   // ⭐ Debug: Log wanneer segments veranderen
   useEffect(() => {
@@ -133,12 +162,11 @@ export function PremiumDonut({
     const mouseY = e.clientY - rect.top;
 
     const categoryId = getSegmentAtAngle(mouseX, mouseY);
-    setIsHoverLocked(true);
+
     setHoverWithDelay(categoryId);
   };
 
   const handleMouseLeave = () => {
-    setIsHoverLocked(false);
     setHoverWithDelay(null);
   };
 

@@ -24,8 +24,9 @@ type BudgetFormProps = {
   suggested: number | null;
   message: string;
   onUpdated: () => void | Promise<void>;
-  isSaved: boolean; // ⭐ NIEUW
-  onRequireSave: () => void; // ⭐ NIEUW
+  isSaved: boolean;
+  onRequireSave: () => void;
+  setIsSaved: React.Dispatch<React.SetStateAction<boolean>>; // ⭐ toegevoegd
 };
 
 export function BudgetForm({
