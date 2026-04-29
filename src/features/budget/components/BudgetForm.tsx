@@ -26,7 +26,9 @@ type BudgetFormProps = {
   onUpdated: () => void | Promise<void>;
   isSaved: boolean;
   onRequireSave: () => void;
-  setIsSaved: React.Dispatch<React.SetStateAction<boolean>>; // ⭐ toegevoegd
+  setIsSaved: React.Dispatch<React.SetStateAction<boolean>>;
+  remaining: number; // ⭐ UI‑remaining komt hier binnen
+  totalExpenses: number;
 };
 
 export function BudgetForm({
@@ -35,7 +37,9 @@ export function BudgetForm({
   message,
   onUpdated,
   isSaved,
-  onRequireSave, // ⭐ NIEUW
+  onRequireSave,
+  remaining, // ⭐ UI‑remaining
+  totalExpenses,
 }: BudgetFormProps) {
   const navigate = useNavigate();
   const toast = useToast();
@@ -52,6 +56,17 @@ export function BudgetForm({
 
   const [value, setValue] = useState(initialValue);
   const [loading, setLoading] = useState(false);
+
+  // ⭐ Belangrijk: we bewaren UI‑remaining lokaal
+  const [localRemaining, setLocalRemaining] = useState(remaining);
+  useEffect(() => {
+    setLocalRemaining(value - totalExpenses); // ⭐ dynamisch herberekenen
+  }, [value, totalExpenses]);
+
+  // ⭐ Wanneer UI‑remaining verandert → update localRemaining
+  useEffect(() => {
+    setLocalRemaining(remaining);
+  }, [remaining]);
 
   const isSuggested = !hasBudget;
 
@@ -71,10 +86,18 @@ export function BudgetForm({
     try {
       setLoading(true);
 
+      // ⭐ We sturen ALTIJD localRemaining mee
       if (hasBudget) {
-        await updateBudget(month, value);
+        await updateBudget(month, {
+          total_budget: value,
+          remaining: localRemaining,
+        });
       } else {
-        await saveBudget({ month, total_budget: value });
+        await saveBudget({
+          month,
+          total_budget: value,
+          remaining: localRemaining,
+        });
       }
 
       toast({
@@ -125,7 +148,6 @@ export function BudgetForm({
             )}
           </VStack>
 
-          {/* ⭐ GEAR ICON MET CORRECTE BLOKKERING */}
           <IconButton
             icon={<FiSettings />}
             aria-label="Instellingen"
@@ -133,7 +155,7 @@ export function BudgetForm({
             color="gray.300"
             onClick={() => {
               if (!isSaved) {
-                onRequireSave(); // ⭐ DIT WERKT ALTIJD
+                onRequireSave();
                 return;
               }
               navigate("/budget/settings");

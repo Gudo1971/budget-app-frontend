@@ -16,7 +16,7 @@ import BudgetSettingsPage from "./features/budget/pages/BudgetSettingsPage";
 import { DashboardPeriodProvider } from "./context/DashboardPeriodContext";
 import { BudgetOverviewContainer } from "./pages/budget/BudgetOverviewContainer";
 import { BudgetDetailPage } from "@/features/budget/pages/BudgetDetailPage";
-
+import CategoryInsightsPage from "@/features/budget/pages/CategoryInsightsPage";
 export default function App() {
   return (
     <Routes>
@@ -43,6 +43,10 @@ export default function App() {
         <Route
           path="/budget/settings/:year/:month"
           element={<BudgetSettingsPage />}
+        />
+        <Route
+          path="/category/:id/insights"
+          element={<CategoryInsightsPage />}
         />
 
         <Route path="/split/:id" element={<SplitPage />} />

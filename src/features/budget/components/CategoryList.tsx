@@ -9,6 +9,7 @@ import {
   IconButton,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import { useNavigate } from "react-router-dom";
 
 import type {
   GroupedCategory,
@@ -16,6 +17,7 @@ import type {
 } from "@/features/budget/hooks/useBudgetGrouping";
 
 import { TransactionItem } from "./TransactionItem";
+import { FiTrendingUp } from "react-icons/fi";
 
 interface CategoryListProps {
   grouped: GroupedCategory[];
@@ -31,6 +33,7 @@ interface CategoryListProps {
   toggle: (id: number) => void;
   openTxMap: Record<number, boolean>;
   toggleTx: (id: number) => void;
+  onMoveTransaction: (t: any) => void; // ⭐ toegevoegd
   itemRefs: React.MutableRefObject<Record<number, HTMLDivElement | null>>;
 }
 
@@ -48,6 +51,7 @@ export function CategoryList({
   toggle,
   openTxMap,
   toggleTx,
+  onMoveTransaction, // ⭐ toegevoegd
   itemRefs,
 }: CategoryListProps) {
   if (loading || transactionsLoading) {
@@ -60,6 +64,7 @@ export function CategoryList({
         const id = item.category?.id ?? -1;
         const isOpen = openMap[id];
         const spentColor = item.remaining >= 0 ? "green.300" : "red.300";
+        const navigate = useNavigate();
 
         return (
           <Box
@@ -75,11 +80,40 @@ export function CategoryList({
           >
             {/* CATEGORY HEADER */}
             <HStack justify="space-between" align="center">
+              {/* LINKERKANT: naam + budget/spent/over */}
               <Box>
-                <Text fontWeight="bold" fontSize="lg" color={neon}>
-                  {item.category?.emoji} {item.category?.name}
-                </Text>
+                {/* Naam + grafiek-icoon */}
+                <HStack justify="space-between" align="center" w="full">
+                  <Text fontWeight="bold" fontSize="lg" color={neon}>
+                    {item.category?.emoji} {item.category?.name}
+                  </Text>
 
+                  {/* 📈 GRAFIEK-ICOON */}
+                  <IconButton
+                    aria-label="show category graph"
+                    icon={<FiTrendingUp size={8} />} // ⭐ icoon zelf kleiner
+                    variant="ghost"
+                    color="cyan.300"
+                    border="1px solid"
+                    borderColor="cyan.300"
+                    borderRadius="md"
+                    boxSize="10px" // ⭐ totale knop kleiner
+                    minW="15px"
+                    minH="15px"
+                    p="0" // ⭐ geen extra padding
+                    _hover={{
+                      color: "cyan.400",
+                      borderColor: "cyan.400",
+                      boxShadow: "0 0 6px rgba(0, 255, 255, 0.4)",
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/category/${id}/insights`);
+                    }}
+                  />
+                </HStack>
+
+                {/* Budget / Spent / Over */}
                 <HStack spacing={6} mt={1}>
                   <Text fontSize="sm" color="gray.400">
                     Budget: € {item.amount.toFixed(2)}
@@ -95,6 +129,7 @@ export function CategoryList({
                 </HStack>
               </Box>
 
+              {/* COLLAPSE TOGGLE */}
               <IconButton
                 aria-label="toggle category"
                 icon={isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
@@ -114,6 +149,7 @@ export function CategoryList({
                     sb={item}
                     openTxMap={openTxMap}
                     toggleTx={toggleTx}
+                    onMove={onMoveTransaction} // ⭐ verplaats-logica
                   />
                 ))}
               </VStack>

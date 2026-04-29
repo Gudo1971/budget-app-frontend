@@ -1,6 +1,12 @@
 // src/features/budget/pages/BudgetDetailPage.tsx
 import React, { useRef, useState } from "react";
-import { Box, VStack, useColorModeValue, HStack } from "@chakra-ui/react";
+import {
+  Box,
+  VStack,
+  useColorModeValue,
+  HStack,
+  Button,
+} from "@chakra-ui/react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { BudgetHeader } from "../components/BudgetHeader";
@@ -20,6 +26,9 @@ import { useHoverSync } from "@/hooks/useHoverSync";
 import { useScrollSync } from "@/hooks/useScrollSync";
 import { getNeonColor } from "@/hooks/getNeonColor";
 import type { Budget } from "@/features/budget/types/Budget";
+
+import { rolloverBudget } from "@/features/budget/api/rollover";
+import { useToast } from "@chakra-ui/react";
 
 export function BudgetDetailPage() {
   const { year, month } = useParams();
@@ -86,6 +95,7 @@ export function BudgetDetailPage() {
 
   // ✔ Remaining = budget – expenses
   const remaining = (budget?.total_budget ?? 0) - totalExpenses;
+  const canRollover = remaining > 0;
 
   const { showModal, setShowModal, focusBudget, requireSave } =
     useBudgetNavigationGuard(isSaved);
@@ -105,6 +115,8 @@ export function BudgetDetailPage() {
       [id]: !prev[id],
     }));
   };
+  const toast = useToast();
+  const [rolloverLoading, setRolloverLoading] = useState(false);
 
   return (
     <Box p={4}>
@@ -130,6 +142,7 @@ export function BudgetDetailPage() {
           onRequireSave={requireSave}
           onUpdated={refreshBudget}
           setIsSaved={setIsSaved}
+          remaining={remaining} // UI‑remaining
         />
 
         <HStack
@@ -165,6 +178,63 @@ export function BudgetDetailPage() {
               p={4}
               mb={4}
             >
+              {canRollover && (
+                <Box
+                  bg={bg}
+                  border="1px solid"
+                  borderColor={border}
+                  borderRadius="lg"
+                  p={4}
+                  mb={4}
+                >
+                  <HStack justify="space-between">
+                    <Box fontSize="sm" color="gray.400">
+                      Rollover
+                    </Box>
+
+                    <Box>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        color="cyan.300"
+                        border="1px solid"
+                        borderColor="cyan.300"
+                        borderRadius="md"
+                        isLoading={rolloverLoading}
+                        _hover={{
+                          color: "cyan.400",
+                          borderColor: "cyan.400",
+                        }}
+                        onClick={async () => {
+                          setRolloverLoading(true);
+                          try {
+                            const result = await rolloverBudget(
+                              `${year}-${month?.padStart(2, "0")}`,
+                            );
+                            toast({
+                              title: "Rollover uitgevoerd",
+                              description: `${result.amount} toegevoegd aan ${result.to}`,
+                              status: "success",
+                            });
+                            refreshBudget();
+                          } catch (err: any) {
+                            toast({
+                              title: "Rollover mislukt",
+                              description: err.message,
+                              status: "error",
+                            });
+                          } finally {
+                            setRolloverLoading(false);
+                          }
+                        }}
+                      >
+                        Rollover (optioneel)
+                      </Button>
+                    </Box>
+                  </HStack>
+                </Box>
+              )}
+
               <HStack justify="space-between">
                 <Box>
                   <Box fontSize="sm" color="gray.400">
