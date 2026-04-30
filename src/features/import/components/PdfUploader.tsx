@@ -7,13 +7,12 @@ import {
   Spinner,
   HStack,
 } from "@chakra-ui/react";
+import { apiPost } from "@/lib/api/api";
 
 export function PdfUploader({ onData }: { onData: (rows: any[]) => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const toast = useToast();
-
-  const API = import.meta.env.VITE_API_URL;
 
   async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -32,17 +31,8 @@ export function PdfUploader({ onData }: { onData: (rows: any[]) => void }) {
       const formData = new FormData();
       formData.append("pdf", file);
 
-      const res = await fetch(`${API}/ai/pdf-extract`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error("Upload mislukt");
-      }
-
-      const data = await res.json();
-      console.log("PDF LOADED!", data.rows);
+      // ⭐ Gebruik API-client (apiPost ondersteunt FormData)
+      const data = await apiPost<{ rows: any[] }>("/ai/pdf-extract", formData);
 
       toast.update(toastId, {
         title: "PDF geladen",
@@ -51,7 +41,6 @@ export function PdfUploader({ onData }: { onData: (rows: any[]) => void }) {
       });
 
       setLoading(false);
-
       onData(data.rows);
     } catch (e) {
       console.error(e);

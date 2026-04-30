@@ -4,30 +4,35 @@ import { SettingsLauncher } from "../../../settings-enigine/SettingsLauncher";
 import { ReceiptCard } from "../../list/components/ReceiptCard";
 import { ReceiptPreviewPanel } from "../components/ReceiptPreviewPanel";
 import { useLocation } from "react-router-dom";
+import { apiGet, apiDelete, apiBaseUrl } from "@/lib/api/api";
+
+// ⭐ Gebruik hetzelfde Receipt-type als ReceiptCard
+type Receipt = {
+  id: number;
+  status: "pending" | "linked" | "archived";
+  uploaded_at: string;
+  filename: string;
+  original_name: string;
+};
 
 export function ReceiptListPage() {
-  const [receipts, setReceipts] = useState<any[]>([]);
+  const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loadingReceipts, setLoadingReceipts] = useState(true);
   const location = useLocation();
-
-  const API = import.meta.env.VITE_API_URL;
 
   // ------------------------------------------------------------
   // Load inbox receipts (pending + linked)
   // ------------------------------------------------------------
   async function loadReceipts() {
-    const res = await fetch(`${API}/receipts`);
-    const data = await res.json();
+    const data = await apiGet<Receipt[]>("/receipts");
 
-    const inbox = data.filter(
-      (r: any) => r.status === "pending" || r.status === "linked",
-    );
-
-    inbox.sort(
-      (a: any, b: any) =>
-        new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime(),
-    );
+    const inbox = data
+      .filter((r) => r.status === "pending" || r.status === "linked")
+      .sort(
+        (a, b) =>
+          new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime(),
+      );
 
     setReceipts(inbox);
     setLoadingReceipts(false);
@@ -54,13 +59,13 @@ export function ReceiptListPage() {
   }
 
   async function handleDelete(id: number) {
-    await fetch(`${API}/receipts/${id}`, { method: "DELETE" });
+    await apiDelete(`/receipts/${id}`);
     setReceipts((prev) => prev.filter((r) => r.id !== id));
     if (selectedId === id) setSelectedId(null);
   }
 
   function handleDownload(id: number) {
-    window.open(`${API}/receipts/${id}/file`, "_blank");
+    window.open(`${apiBaseUrl}/receipts/${id}/file`, "_blank");
   }
 
   // ------------------------------------------------------------

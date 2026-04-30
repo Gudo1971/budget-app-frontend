@@ -1,7 +1,3 @@
-// ===============================
-// PdfPanel.tsx (gecorrigeerd)
-// ===============================
-
 import { useState } from "react";
 import { VStack, Text, Button, useToast } from "@chakra-ui/react";
 import { PdfUploader } from "../components/PdfUploader";
@@ -9,6 +5,7 @@ import { mapPdfRowToTransaction } from "../logic/mapPdfRowsToTransactions";
 import { isDuplicate } from "../logic/duplicateCheck";
 import { saveTransaction } from "../logic/saveTransaction";
 import { useNavigate } from "react-router-dom";
+import { apiGet } from "@/lib/api/api";
 
 export function PdfPanel({ onClose }: { onClose?: () => void }) {
   const [preview, setPreview] = useState<any[]>([]);
@@ -17,17 +14,16 @@ export function PdfPanel({ onClose }: { onClose?: () => void }) {
   const toast = useToast();
   const navigate = useNavigate();
 
-  const API = import.meta.env.VITE_API_URL;
-
   // ===============================
   // Stap 1: PDF inlezen + duplicate check
   // ===============================
   async function handlePdfLoaded(rows: any[]) {
     const mapped = rows.map(mapPdfRowToTransaction);
 
-    const existing = await fetch(`${API}/transactions`).then((r) => r.json());
-    const filtered = mapped.filter((tx) => !isDuplicate(existing.data, tx));
+    // ⭐ Vervangt fetch(`${API}/transactions`)
+    const existing = await apiGet<{ data: any[] }>("/transactions");
 
+    const filtered = mapped.filter((tx) => !isDuplicate(existing.data, tx));
     setPreview(filtered);
 
     if (filtered.length === 0) {
@@ -53,6 +49,7 @@ export function PdfPanel({ onClose }: { onClose?: () => void }) {
       console.log(`⏳ Starting import of ${preview.length} transactions...`);
       const startTime = Date.now();
 
+      // ⭐ saveTransaction gebruikt al jouw API-client
       await Promise.all(preview.map((tx) => saveTransaction(tx)));
 
       const elapsed = Date.now() - startTime;

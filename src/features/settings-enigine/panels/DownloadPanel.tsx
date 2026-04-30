@@ -1,5 +1,6 @@
 import { Box, Button, Image, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 import { useReceiptStore } from "../../../stores/receiptStore";
+import { apiBaseUrl } from "@/lib/api/api";
 
 export function DownloadPanel() {
   const receipts = useReceiptStore((state) => state.receipts);
@@ -8,13 +9,13 @@ export function DownloadPanel() {
 
   const selectedReceipts = receipts.filter((r) => selectedIds.includes(r.id));
 
-  const API = import.meta.env.VITE_API_URL;
-
   const handleDownload = async () => {
     if (selectedReceipts.length === 0) return;
 
     const query = selectedReceipts.map((r) => r.id).join(",");
-    const res = await fetch(`${API}/receipts/zip?ids=${query}`);
+
+    // ⭐ Gebruik de centrale base URL
+    const res = await fetch(`${apiBaseUrl}/receipts/zip?ids=${query}`);
 
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);

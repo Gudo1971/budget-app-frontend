@@ -1,17 +1,23 @@
 import { useEffect, useState, useCallback } from "react";
+import { apiGet } from "@/lib/api/api";
+
+type BudgetResponse = {
+  id: string;
+  month: string;
+  total_budget: number;
+  // voeg hier toe wat jouw backend nog meer teruggeeft
+};
 
 export function useBudgetData(
   year: string | undefined,
   month: string | undefined,
 ) {
-  const [budget, setBudget] = useState(null);
+  const [budget, setBudget] = useState<BudgetResponse | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);
-
-  const API = import.meta.env.VITE_API_URL;
 
   // -------------------------
   // FETCH BUDGET
@@ -24,19 +30,17 @@ export function useBudgetData(
     const paddedMonth = month.padStart(2, "0");
     const monthString = `${year}-${paddedMonth}`;
 
-    fetch(`${API}/budget/${monthString}`)
-      .then((res) => res.json())
+    apiGet<BudgetResponse>(`/budget/${monthString}`)
       .then((data) => {
         setBudget(data);
         setIsSaved(data?.total_budget > 0);
-        setLoading(false);
       })
       .catch(() => {
         setBudget(null);
         setIsSaved(false);
-        setLoading(false);
-      });
-  }, [year, month, API]);
+      })
+      .finally(() => setLoading(false));
+  }, [year, month]);
 
   // -------------------------
   // SET FROM/TO RANGE
@@ -61,12 +65,10 @@ export function useBudgetData(
     const padded = month.padStart(2, "0");
     const monthString = `${year}-${padded}`;
 
-    const res = await fetch(`${API}/budget/${monthString}`);
-    const data = await res.json();
-
+    const data = await apiGet<BudgetResponse>(`/budget/${monthString}`);
     setBudget(data);
     setIsSaved(data.total_budget > 0);
-  }, [year, month, API]);
+  }, [year, month]);
 
   return {
     budget,

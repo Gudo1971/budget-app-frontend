@@ -12,6 +12,7 @@ import { ReceiptViewerModal } from "@/components/receiptViewer/ReceiptViewerModa
 
 import { updateMerchantMemory } from "@/lib/api/merchantMemory";
 import { updateTransactionCategory } from "@/lib/api/transactions";
+import { apiPost } from "@/lib/api/api";
 
 export function TransactionsList({
   items,
@@ -64,22 +65,15 @@ export function TransactionsList({
     closeModal();
   };
 
-  // ⭐ Nieuwe categorie aanmaken
+  // ⭐ Nieuwe categorie aanmaken (via API-client)
   const handleCreateCategory = async (name: string) => {
     if (!selected) return;
 
-    const API = import.meta.env.VITE_API_URL;
-
-    const res = await fetch(`${API}/categories`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: "demo-user",
-        name,
-      }),
+    const newCat = await apiPost<Category>("/categories", {
+      userId: "demo-user",
+      name,
     });
 
-    const newCat = await res.json();
     categories.push(newCat);
 
     await updateMerchantMemory(selected.merchant ?? "Onbekend", newCat.id);

@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
+import { apiPost } from "@/lib/api/api";
 
 type CreateCategoryInput = {
   name: string;
@@ -7,15 +7,12 @@ type CreateCategoryInput = {
 };
 
 export function useCreateCategory() {
-  const API = import.meta.env.VITE_API_URL;
-
   return useMutation({
     mutationFn: async (data: CreateCategoryInput) => {
-      const res = await axios.post(`${API}/categories`, {
+      return apiPost("/categories", {
         userId: "demo-user",
         ...data,
       });
-      return res.data;
     },
   });
 }

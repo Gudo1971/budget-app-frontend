@@ -81,3 +81,4 @@ export function getBudget() {
 export function saveBudget(total_budget: number) {
   return apiPost("/budget", { total_budget });
 }
+export const apiBaseUrl = import.meta.env.VITE_API_URL;

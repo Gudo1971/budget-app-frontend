@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { Category } from "@/features/categories/types/Category";
 import { assignCategoryColors } from "../utils/categoryColors";
+import { apiGet } from "@/lib/api/api";
 
 const userId = "demo-user";
 
@@ -10,8 +11,6 @@ export function useCategories() {
   const [error, setError] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
-
-  const API = import.meta.env.VITE_API_URL;
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -25,13 +24,9 @@ export function useCategories() {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`${API}/categories?userId=${userId}`, {
+      const data = await apiGet<Category[]>(`/categories?userId=${userId}`, {
         signal: controller.signal,
       });
-
-      if (!res.ok) throw new Error("Kon categorieën niet laden");
-
-      const data: Category[] = await res.json();
 
       if (!controller.signal.aborted) {
         const colored = assignCategoryColors(data);
@@ -43,7 +38,7 @@ export function useCategories() {
     } finally {
       setLoading(false);
     }
-  }, [API]);
+  }, []);
 
   useEffect(() => {
     fetchCategories();

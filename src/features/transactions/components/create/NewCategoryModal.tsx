@@ -9,6 +9,7 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { apiPost } from "@/lib/api/api";
 
 type Props = {
   userId: string;
@@ -25,16 +26,12 @@ export function NewCategoryModal({
 }: Props) {
   const [name, setName] = useState("");
 
-  const API = import.meta.env.VITE_API_URL;
-
   async function createCategory() {
-    const res = await fetch(`${API}/categories`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, name }),
+    const newCat = await apiPost<{ id: number; name: string }>("/categories", {
+      userId,
+      name,
     });
 
-    const newCat = await res.json();
     onCreated(newCat);
     setName("");
     onClose();

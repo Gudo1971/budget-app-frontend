@@ -1,5 +1,6 @@
 import { Box, HStack, VStack, Text, IconButton, Badge } from "@chakra-ui/react";
 import { DeleteIcon, DownloadIcon } from "@chakra-ui/icons";
+import { apiBaseUrl } from "@/lib/api/api";
 
 export type Receipt = {
   id: number;
@@ -22,8 +23,6 @@ export function ReceiptCard({
   onClick?: () => void;
   isSelected?: boolean;
 }) {
-  const API = import.meta.env.VITE_API_URL;
-
   return (
     <Box
       p={4}
@@ -46,11 +45,11 @@ export function ReceiptCard({
           border="1px solid gray.700"
           onClick={(e) => {
             e.stopPropagation();
-            window.open(`${API}/receipts/${receipt.id}/file`, "_blank");
+            window.open(`${apiBaseUrl}/receipts/${receipt.id}/file`, "_blank");
           }}
         >
           <img
-            src={`${API}/receipts/${receipt.id}/file`}
+            src={`${apiBaseUrl}/receipts/${receipt.id}/file`}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         </Box>
@@ -68,6 +67,10 @@ export function ReceiptCard({
 
             {receipt.status === "linked" && (
               <Badge colorScheme="green">Gekoppeld</Badge>
+            )}
+
+            {receipt.status === "archived" && (
+              <Badge colorScheme="purple">Gearchiveerd</Badge>
             )}
           </HStack>
 

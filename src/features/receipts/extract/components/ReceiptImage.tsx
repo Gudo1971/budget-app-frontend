@@ -1,12 +1,11 @@
 import { Box } from "@chakra-ui/react";
+import { apiBaseUrl } from "@/lib/api/api"; // ⭐ centrale base URL uit je API-client
 
 export function ReceiptImage({ receiptId }: { receiptId: number }) {
-  const API = import.meta.env.VITE_API_URL;
-
   return (
     <Box mb={4}>
       <img
-        src={`${API}/receipts/${receiptId}/file`}
+        src={`${apiBaseUrl}/receipts/${receiptId}/file`}
         style={{
           width: "100%",
           maxHeight: "400px",

@@ -7,6 +7,7 @@ import { SubSectionHeader } from "../../../components/ui/SubSectionHeader";
 import { useEffect, useState } from "react";
 import { useDateFilter } from "../../../context/DateFilterContext";
 import { useCategories } from "@/features/categories/hooks/useCategories";
+import { apiGet } from "@/lib/api/api";
 
 export type TransactionAnalysisCardProps = {
   total: number;
@@ -20,7 +21,6 @@ export type TransactionAnalysisCardProps = {
   daysInPeriod: number;
 };
 
-// ⭐ Type voor backend summary items
 type SummaryItem = {
   category_id: number;
   name: string;
@@ -32,32 +32,30 @@ export const TransactionAnalysisCard = (
 ) => {
   const { sortedCategories, budget, spent, daysPassed, daysInPeriod } = props;
 
-  const [summaryData, setSummaryData] = useState([]);
-  const { range } = useDateFilter();
+  const [summaryData, setSummaryData] = useState<
+    { name: string; value: number; category_id: number }[]
+  >([]);
 
-  // ⭐ Haal categorieën op (met kleur)
+  const { range } = useDateFilter();
   const { categories } = useCategories();
 
-  // ⭐ FETCH SUMMARY DATA
+  // ⭐ FETCH SUMMARY DATA — via API-client
   useEffect(() => {
     async function load() {
-      const API = import.meta.env.VITE_API_URL;
-
       const from = range.from.toISOString().slice(0, 10);
       const to = range.to.toISOString().slice(0, 10);
 
-      const res = await fetch(
-        `${API}/summary?userId=demo-user&from=${from}&to=${to}`,
-      );
-
-      const json = await res.json();
+      const json = await apiGet<{
+        success: boolean;
+        data: SummaryItem[];
+      }>(`/summary?userId=demo-user&from=${from}&to=${to}`);
 
       if (!json.success || !json.data) {
         setSummaryData([]);
         return;
       }
 
-      const mapped = json.data.map((item: SummaryItem) => ({
+      const mapped = json.data.map((item) => ({
         name: item.name,
         value: Math.abs(item.total),
         category_id: item.category_id,
@@ -106,15 +104,10 @@ export const TransactionAnalysisCard = (
             info="Deze grafiek laat zien hoe jouw uitgaven verdeeld zijn over categorieën."
           />
 
-          {/* ⭐ Donut chart */}
           <Box w="full" mt={3}>
-            <DonutChart
-              data={summaryData}
-              categories={categories} // ⭐ FIX — voorkomt crash
-            />
+            <DonutChart data={summaryData} categories={categories} />
           </Box>
 
-          {/* ⭐ Budget Progress Bar */}
           <Box mt={5}>
             <Text fontSize="sm" color="gray.400" mb={1}>
               Budgetvoortgang
@@ -142,7 +135,7 @@ export const TransactionAnalysisCard = (
             </Box>
 
             <Text fontSize="xs" color="gray.400" mt={1}>
-              €{spent.toFixed(0)} van €{budget.toFixed(0)} uitgegeven €
+              €{spent.toFixed(0)} van €{budget.toFixed(0)} uitgegeven — €
               {remaining.toFixed(0)} over
             </Text>
           </Box>

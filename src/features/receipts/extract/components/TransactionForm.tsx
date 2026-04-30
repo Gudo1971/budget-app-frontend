@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser } from "../../../../context/UserContext";
+import { apiGet, apiPost } from "@/lib/api/api";
 
 type Category = {
   id: number;
@@ -36,18 +37,15 @@ type FormData = z.infer<typeof schema>;
 export function TransactionForm() {
   const { id: userId } = useUser();
   const [categories, setCategories] = useState<Category[]>([]);
-  const API = import.meta.env.VITE_API_URL;
 
-  // ⭐ Load categories from backend (correct)
+  // ⭐ Load categories via API-client
   useEffect(() => {
-    const fetchCategories = async () => {
-      const res = await fetch(`${API}/categories?userId=${userId}`);
-      const data = await res.json();
+    async function load() {
+      const data = await apiGet<Category[]>(`/categories?userId=${userId}`);
       setCategories(data);
-    };
-
-    fetchCategories();
-  }, [API, userId]);
+    }
+    load();
+  }, [userId]);
 
   const {
     register,
@@ -58,19 +56,15 @@ export function TransactionForm() {
     resolver: zodResolver(schema),
   });
 
-  // ⭐ Submit to backend (correct)
+  // ⭐ Submit via API-client
   const onSubmit = async (data: FormData) => {
-    await fetch(`${API}/transactions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount: Number(data.amount),
-        description: data.description,
-        date: data.date,
-        category_id: Number(data.category_id),
-        subcategory_id: null,
-        userId,
-      }),
+    await apiPost("/transactions", {
+      amount: Number(data.amount),
+      description: data.description,
+      date: data.date,
+      category_id: Number(data.category_id),
+      subcategory_id: null,
+      userId,
     });
 
     reset();

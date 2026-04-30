@@ -1,5 +1,6 @@
 import { Select } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { apiGet } from "@/lib/api/api";
 
 type Category = {
   id: number;
@@ -14,14 +15,26 @@ type Props = {
 
 export function CategorySelect({ value, onChange }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
-  const API = import.meta.env.VITE_API_URL;
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API}/categories`)
-      .then((res) => res.json())
-      .then(setCategories)
-      .catch((err) => console.error("Failed to load categories", err));
-  }, [API]);
+    let mounted = true;
+
+    apiGet<Category[]>("/categories")
+      .then((data) => {
+        if (mounted) setCategories(data);
+      })
+      .catch((err) => {
+        console.error("Failed to load categories", err);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <Select
@@ -36,7 +49,7 @@ export function CategorySelect({ value, onChange }: Props) {
     >
       <option value={0}>Selecteer categorie</option>
 
-      {categories.length === 0 ? (
+      {loading ? (
         <option value={0} disabled>
           Laden...
         </option>

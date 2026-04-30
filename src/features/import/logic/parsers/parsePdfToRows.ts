@@ -1,15 +1,15 @@
+import { apiPost } from "@/lib/api/api";
+
 export async function parsePdfToRows(file: File) {
   const base64 = await fileToBase64(file);
-  const API = import.meta.env.VITE_API_URL;
 
-  const response = await fetch(`${API}/ai/pdf-extract`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pdf: base64 }),
+  // ⭐ Gebruik API-client (apiPost ondersteunt JSON én FormData)
+
+  const data = await apiPost<{ rows: any[] }>("/ai/pdf-extract", {
+    pdf: base64,
   });
 
-  const data = await response.json();
-  return data.rows; // [{ date, description, amount }]
+  return data.rows;
 }
 
 function fileToBase64(file: File): Promise<string> {
