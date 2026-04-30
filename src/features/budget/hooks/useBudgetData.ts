@@ -11,6 +11,8 @@ export function useBudgetData(
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);
 
+  const API = import.meta.env.VITE_API_URL;
+
   // -------------------------
   // FETCH BUDGET
   // -------------------------
@@ -22,7 +24,7 @@ export function useBudgetData(
     const paddedMonth = month.padStart(2, "0");
     const monthString = `${year}-${paddedMonth}`;
 
-    fetch(`/api/budget/${monthString}`)
+    fetch(`${API}/budget/${monthString}`)
       .then((res) => res.json())
       .then((data) => {
         setBudget(data);
@@ -34,7 +36,7 @@ export function useBudgetData(
         setIsSaved(false);
         setLoading(false);
       });
-  }, [year, month]);
+  }, [year, month, API]);
 
   // -------------------------
   // SET FROM/TO RANGE
@@ -59,12 +61,12 @@ export function useBudgetData(
     const padded = month.padStart(2, "0");
     const monthString = `${year}-${padded}`;
 
-    const res = await fetch(`/api/budget/${monthString}`);
+    const res = await fetch(`${API}/budget/${monthString}`);
     const data = await res.json();
 
     setBudget(data);
     setIsSaved(data.total_budget > 0);
-  }, [year, month]);
+  }, [year, month, API]);
 
   return {
     budget,

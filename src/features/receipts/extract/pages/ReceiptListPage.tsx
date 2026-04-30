@@ -11,20 +11,22 @@ export function ReceiptListPage() {
   const [loadingReceipts, setLoadingReceipts] = useState(true);
   const location = useLocation();
 
+  const API = import.meta.env.VITE_API_URL;
+
   // ------------------------------------------------------------
   // Load inbox receipts (pending + linked)
   // ------------------------------------------------------------
   async function loadReceipts() {
-    const res = await fetch("/api/receipts");
+    const res = await fetch(`${API}/receipts`);
     const data = await res.json();
 
     const inbox = data.filter(
-      (r: any) => r.status === "pending" || r.status === "linked"
+      (r: any) => r.status === "pending" || r.status === "linked",
     );
 
     inbox.sort(
       (a: any, b: any) =>
-        new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime()
+        new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime(),
     );
 
     setReceipts(inbox);
@@ -52,13 +54,13 @@ export function ReceiptListPage() {
   }
 
   async function handleDelete(id: number) {
-    await fetch(`/api/receipts/${id}`, { method: "DELETE" });
+    await fetch(`${API}/receipts/${id}`, { method: "DELETE" });
     setReceipts((prev) => prev.filter((r) => r.id !== id));
     if (selectedId === id) setSelectedId(null);
   }
 
   function handleDownload(id: number) {
-    window.open(`/api/receipts/${id}/file`, "_blank");
+    window.open(`${API}/receipts/${id}/file`, "_blank");
   }
 
   // ------------------------------------------------------------

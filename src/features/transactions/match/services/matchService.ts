@@ -1,5 +1,7 @@
 export async function startMatchFlow(receiptId: number) {
-  const res = await fetch(`/api/receipts/${receiptId}/link`, {
+  const API = import.meta.env.VITE_API_URL;
+
+  const res = await fetch(`${API}/receipts/${receiptId}/link`, {
     method: "POST",
   });
 

@@ -8,11 +8,13 @@ export function DownloadPanel() {
 
   const selectedReceipts = receipts.filter((r) => selectedIds.includes(r.id));
 
+  const API = import.meta.env.VITE_API_URL;
+
   const handleDownload = async () => {
     if (selectedReceipts.length === 0) return;
 
     const query = selectedReceipts.map((r) => r.id).join(",");
-    const res = await fetch(`/api/receipts/zip?ids=${query}`);
+    const res = await fetch(`${API}/receipts/zip?ids=${query}`);
 
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);

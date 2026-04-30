@@ -11,6 +11,8 @@ export function useCategories() {
 
   const abortRef = useRef<AbortController | null>(null);
 
+  const API = import.meta.env.VITE_API_URL;
+
   const fetchCategories = useCallback(async () => {
     try {
       if (abortRef.current) {
@@ -23,7 +25,7 @@ export function useCategories() {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`/api/categories?userId=${userId}`, {
+      const res = await fetch(`${API}/categories?userId=${userId}`, {
         signal: controller.signal,
       });
 
@@ -32,7 +34,6 @@ export function useCategories() {
       const data: Category[] = await res.json();
 
       if (!controller.signal.aborted) {
-        // ⭐ Dynamische soft‑neon kleuren toepassen
         const colored = assignCategoryColors(data);
         setCategories(colored);
       }
@@ -42,7 +43,7 @@ export function useCategories() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [API]);
 
   useEffect(() => {
     fetchCategories();

@@ -37,11 +37,14 @@ export async function distributeRemaining(
   month: string,
   data: { rollover: number; savings: number },
 ) {
-  const res = await fetch(`/api/budget/${month}/distribute`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL}/budget/${month}/distribute`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
 
   if (!res.ok) {
     const text = await res.text();

@@ -7,18 +7,18 @@ export function ReceiptArchivePage() {
   const [receipts, setReceipts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const API = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/receipts");
+      const res = await fetch(`${API}/receipts`);
       const data = await res.json();
 
-      // Alleen gearchiveerde bonnen tonen
       const archived = data.filter((r: any) => r.status === "archived");
 
-      // Nieuwste bovenaan
       archived.sort(
         (a: any, b: any) =>
-          new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime()
+          new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime(),
       );
 
       setReceipts(archived);
@@ -26,14 +26,14 @@ export function ReceiptArchivePage() {
     }
 
     load();
-  }, []);
+  }, [API]);
 
   function handleDownload(id: number) {
-    window.open(`/api/receipts/${id}/file`, "_blank");
+    window.open(`${API}/receipts/${id}/file`, "_blank");
   }
 
   async function handleDelete(id: number) {
-    await fetch(`/api/receipts/${id}`, { method: "DELETE" });
+    await fetch(`${API}/receipts/${id}`, { method: "DELETE" });
     setReceipts((prev) => prev.filter((r) => r.id !== id));
   }
 
