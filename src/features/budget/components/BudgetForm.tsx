@@ -27,7 +27,7 @@ type BudgetFormProps = {
   isSaved: boolean;
   onRequireSave: () => void;
   setIsSaved: React.Dispatch<React.SetStateAction<boolean>>;
-  remaining: number; // ⭐ UI‑remaining komt hier binnen
+  remaining: number;
   totalExpenses: number;
 };
 
@@ -38,12 +38,12 @@ export function BudgetForm({
   onUpdated,
   isSaved,
   onRequireSave,
-  remaining, // ⭐ UI‑remaining
+  remaining,
   totalExpenses,
 }: BudgetFormProps) {
   const navigate = useNavigate();
   const toast = useToast();
-  const { budget } = useBudget(month);
+  const { budget, refetch } = useBudget(month);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -52,24 +52,17 @@ export function BudgetForm({
     typeof budget.total_budget === "number" &&
     budget.total_budget > 0;
 
+  const originalValue = hasBudget ? budget.total_budget : null;
+
   const initialValue = hasBudget ? budget.total_budget : (suggested ?? 0);
 
   const [value, setValue] = useState(initialValue);
   const [loading, setLoading] = useState(false);
 
-  // ⭐ Belangrijk: we bewaren UI‑remaining lokaal
-  const [localRemaining, setLocalRemaining] = useState(remaining);
-  useEffect(() => {
-    setLocalRemaining(value - totalExpenses); // ⭐ dynamisch herberekenen
-  }, [value, totalExpenses]);
+  // ⭐ remaining wordt altijd dynamisch berekend
+  const localRemaining = Number((value - totalExpenses).toFixed(2));
 
-  // ⭐ Wanneer UI‑remaining verandert → update localRemaining
-  useEffect(() => {
-    setLocalRemaining(remaining);
-  }, [remaining]);
-
-  const isSuggested = !hasBudget;
-
+  // ⭐ Wanneer budget verandert → update value
   useEffect(() => {
     if (hasBudget) {
       setValue(budget.total_budget);
@@ -82,11 +75,17 @@ export function BudgetForm({
   const border = useColorModeValue("whiteAlpha.300", "whiteAlpha.200");
   const neon = useNeonColor(month);
 
+  // ⭐ Disabled‑logica
+  const isUnchanged = hasBudget && Number(value) === Number(originalValue);
+
+  const isInvalid = Number.isNaN(value) || value < 0 || localRemaining < 0;
+
+  const disableSave = isUnchanged || isInvalid;
+
   const handleSave = async () => {
     try {
       setLoading(true);
 
-      // ⭐ We sturen ALTIJD localRemaining mee
       if (hasBudget) {
         await updateBudget(month, {
           total_budget: value,
@@ -107,6 +106,7 @@ export function BudgetForm({
       });
 
       await onUpdated();
+      await refetch(); // ⭐ nieuwe budgetwaarde ophalen
     } catch (err) {
       toast({
         title: "Opslaan mislukt",
@@ -180,8 +180,8 @@ export function BudgetForm({
             placeholder="Bijv. 3000"
             fontSize="lg"
             fontWeight="bold"
-            color={isSuggested ? "gray.400" : "white"}
-            borderColor={isSuggested ? "orange.300" : neon.color}
+            color={hasBudget ? "white" : "gray.400"}
+            borderColor={hasBudget ? neon.color : "orange.300"}
             _focus={{
               borderColor: neon.color,
               boxShadow: `0 0 15px ${neon.glow}`,
@@ -199,18 +199,23 @@ export function BudgetForm({
         <Button
           onClick={handleSave}
           isLoading={loading}
+          isDisabled={disableSave}
           size="md"
           borderRadius="md"
-          bg={neon.color}
+          bg={disableSave ? "gray.600" : neon.color}
           color="white"
-          _hover={{
-            bg: neon.color,
-            boxShadow: `0 0 20px ${neon.glow}`,
-            transform: "scale(1.02)",
-          }}
+          _hover={
+            disableSave
+              ? {}
+              : {
+                  bg: neon.color,
+                  boxShadow: `0 0 20px ${neon.glow}`,
+                  transform: "scale(1.02)",
+                }
+          }
           transition="0.2s ease"
         >
-          Opslaan
+          {isUnchanged ? "Geen wijzigingen" : "Opslaan"}
         </Button>
       </VStack>
     </Box>

@@ -33,3 +33,20 @@ export async function updateBudget(
 export function copyBudgets(from: string, to: string) {
   return apiPost(`/budget/copy/${from}/${to}`, {});
 }
+export async function distributeRemaining(
+  month: string,
+  data: { rollover: number; savings: number },
+) {
+  const res = await fetch(`/api/budget/${month}/distribute`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error("Failed to distribute remaining: " + text);
+  }
+
+  return res.json();
+}

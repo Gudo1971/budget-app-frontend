@@ -54,6 +54,7 @@ export function CategoryList({
   onMoveTransaction, // ⭐ toegevoegd
   itemRefs,
 }: CategoryListProps) {
+  const navigate = useNavigate();
   if (loading || transactionsLoading) {
     return <Text color="gray.400">Laden…</Text>;
   }
@@ -64,7 +65,6 @@ export function CategoryList({
         const id = item.category?.id ?? -1;
         const isOpen = openMap[id];
         const spentColor = item.remaining >= 0 ? "green.300" : "red.300";
-        const navigate = useNavigate();
 
         return (
           <Box

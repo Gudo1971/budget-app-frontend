@@ -30,13 +30,12 @@ import type { Budget } from "@/features/budget/types/Budget";
 import { rolloverBudget } from "@/features/budget/api/rollover";
 import { useToast } from "@chakra-ui/react";
 
+import { DistributeModal } from "../components/DistributeModal";
+
 export function BudgetDetailPage() {
   const { year, month } = useParams();
   const navigate = useNavigate();
-  const [moveTx, setMoveTx] = useState<any | null>(null);
-  const onMoveTransaction = (t: any) => {
-    setMoveTx(t);
-  };
+  const toast = useToast();
 
   const { budget, isSaved, loading, from, to, refreshBudget, setIsSaved } =
     useBudgetData(year, month) as {
@@ -77,46 +76,33 @@ export function BudgetDetailPage() {
   useScrollSync(hoverCategory, isHoverLocked, itemRefs);
 
   const donutTransactions = useDonutTransactions(transactions, categories);
-
   const { grouped } = useBudgetGrouping(transactions, categories, budget);
 
-  const [suggested] = useState<number | null>(null);
-  const [message] = useState("");
-
-  // ✔ Total income
   const totalIncome = transactions
     .filter((t) => t.amount > 0)
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // ✔ Total expenses (positive number)
   const totalExpenses = transactions
     .filter((t) => t.amount < 0)
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
-  // ✔ Remaining = budget – expenses
-  const remaining = (budget?.total_budget ?? 0) - totalExpenses;
+  const remaining = budget?.remaining ?? 0;
+
   const canRollover = remaining > 0;
 
   const { showModal, setShowModal, focusBudget, requireSave } =
     useBudgetNavigationGuard(isSaved);
 
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
-  const toggle = (id: number) => {
-    setOpenMap((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
+  const toggle = (id: number) =>
+    setOpenMap((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const [openTxMap, setOpenTxMap] = useState<Record<number, boolean>>({});
-  const toggleTx = (id: number) => {
-    setOpenTxMap((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-  const toast = useToast();
+  const toggleTx = (id: number) =>
+    setOpenTxMap((prev) => ({ ...prev, [id]: !prev[id] }));
+
   const [rolloverLoading, setRolloverLoading] = useState(false);
+  const [rolloverModalOpen, setRolloverModalOpen] = useState(false);
 
   return (
     <Box p={4}>
@@ -136,23 +122,17 @@ export function BudgetDetailPage() {
 
         <BudgetForm
           month={`${year}-${month?.padStart(2, "0")}`}
-          suggested={suggested ?? totalIncome}
-          message={message}
+          suggested={totalIncome}
+          message=""
           isSaved={isSaved}
           onRequireSave={requireSave}
           onUpdated={refreshBudget}
           setIsSaved={setIsSaved}
-          remaining={remaining} // UI‑remaining
+          remaining={remaining}
+          totalExpenses={totalExpenses}
         />
 
-        <HStack
-          align="flex-start"
-          spacing={12}
-          w="full"
-          alignItems="flex-start"
-          mt={8}
-        >
-          {/* DONUT LINKS */}
+        <HStack align="flex-start" spacing={12} w="full" mt={8}>
           <Box flexShrink={0} mt={24}>
             <DonutSection
               loading={loading}
@@ -167,9 +147,7 @@ export function BudgetDetailPage() {
             />
           </Box>
 
-          {/* RECHTERKOLOM */}
           <Box flex="1" minW="0">
-            {/* ⭐ Income + Budget Summary Bar */}
             <Box
               bg={bg}
               border="1px solid"
@@ -192,45 +170,43 @@ export function BudgetDetailPage() {
                       Rollover
                     </Box>
 
-                    <Box>
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        color="cyan.300"
-                        border="1px solid"
-                        borderColor="cyan.300"
-                        borderRadius="md"
-                        isLoading={rolloverLoading}
-                        _hover={{
-                          color: "cyan.400",
-                          borderColor: "cyan.400",
-                        }}
-                        onClick={async () => {
-                          setRolloverLoading(true);
-                          try {
-                            const result = await rolloverBudget(
-                              `${year}-${month?.padStart(2, "0")}`,
-                            );
-                            toast({
-                              title: "Rollover uitgevoerd",
-                              description: `${result.amount} toegevoegd aan ${result.to}`,
-                              status: "success",
-                            });
-                            refreshBudget();
-                          } catch (err: any) {
-                            toast({
-                              title: "Rollover mislukt",
-                              description: err.message,
-                              status: "error",
-                            });
-                          } finally {
-                            setRolloverLoading(false);
-                          }
-                        }}
-                      >
-                        Rollover (optioneel)
-                      </Button>
-                    </Box>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      color="cyan.300"
+                      border="1px solid"
+                      borderColor="cyan.300"
+                      borderRadius="md"
+                      isLoading={rolloverLoading}
+                      _hover={{
+                        color: "cyan.400",
+                        borderColor: "cyan.400",
+                      }}
+                      onClick={async () => {
+                        setRolloverLoading(true);
+                        try {
+                          const result = await rolloverBudget(
+                            `${year}-${month?.padStart(2, "0")}`,
+                          );
+                          toast({
+                            title: "Rollover uitgevoerd",
+                            description: `${result.amount} toegevoegd aan ${result.to}`,
+                            status: "success",
+                          });
+                          refreshBudget();
+                        } catch (err: any) {
+                          toast({
+                            title: "Rollover mislukt",
+                            description: err.message,
+                            status: "error",
+                          });
+                        } finally {
+                          setRolloverLoading(false);
+                        }
+                      }}
+                    >
+                      Rollover (optioneel)
+                    </Button>
                   </HStack>
                 </Box>
               )}
@@ -259,9 +235,16 @@ export function BudgetDetailPage() {
                     Over
                   </Box>
                   <Box
+                    as="button"
+                    onClick={() => {
+                      if (remaining <= 0) return;
+                      setRolloverModalOpen(true);
+                    }}
                     fontSize="lg"
                     fontWeight="bold"
                     color={remaining >= 0 ? "green.300" : "red.300"}
+                    textDecoration={remaining > 0 ? "underline" : "none"}
+                    cursor={remaining > 0 ? "pointer" : "default"}
                   >
                     € {remaining.toFixed(2)}
                   </Box>
@@ -269,7 +252,6 @@ export function BudgetDetailPage() {
               </HStack>
             </Box>
 
-            {/* CATEGORY LIST */}
             <Box flex="1" minW="0" maxH="40vh" overflowY="auto" pr={2} mt={6}>
               <CategoryList
                 grouped={grouped}
@@ -286,12 +268,24 @@ export function BudgetDetailPage() {
                 openTxMap={openTxMap}
                 toggleTx={toggleTx}
                 itemRefs={itemRefs}
-                onMoveTransaction={onMoveTransaction}
+                onMoveTransaction={() => {}}
               />
             </Box>
           </Box>
         </HStack>
       </VStack>
+
+      {/* ⭐ Distribute Modal */}
+      <DistributeModal
+        isOpen={rolloverModalOpen}
+        onClose={() => setRolloverModalOpen(false)}
+        remaining={remaining}
+        year={year}
+        month={month}
+        refreshBudget={refreshBudget}
+        bg={bg}
+        border={border}
+      />
     </Box>
   );
 }
