@@ -1,6 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { MerchantMemoryRecord } from "@/shared/types/merchantMemory";
-import { normalizeMerchant } from "@shared/services/normalizeMerchant";
+
+// ⭐ FRONTEND‑SAFE normalizer (backend versie mag je niet importeren)
+function normalizeMerchantFrontend(name: string) {
+  return name.trim().toLowerCase();
+}
 
 export function useMerchantMemory() {
   const [merchants, setMerchants] = useState<MerchantMemoryRecord[]>([]);
@@ -12,7 +16,9 @@ export function useMerchantMemory() {
       setLoading(true);
       setError(null);
 
-      const res = await fetch("http://localhost:3001/debug/merchant-memory");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/debug/merchant-memory`,
+      );
       const data: MerchantMemoryRecord[] = await res.json();
 
       setMerchants(data);
@@ -25,7 +31,7 @@ export function useMerchantMemory() {
 
   const retrain = useCallback(
     async (m: MerchantMemoryRecord) => {
-      await fetch("http://localhost:3001/debug/retrain", {
+      await fetch(`${import.meta.env.VITE_API_URL}/debug/retrain`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -39,11 +45,11 @@ export function useMerchantMemory() {
     [load],
   );
 
-  // ⭐ NEW: Suggest category based on merchant memory
+  // ⭐ Suggest category based on merchant memory
   function suggestCategory(merchant: string) {
     if (!merchant || merchants.length === 0) return null;
 
-    const normalized = normalizeMerchant(merchant).key.toLowerCase();
+    const normalized = normalizeMerchantFrontend(merchant);
 
     const record = merchants.find((m) => m.key.toLowerCase() === normalized);
 
@@ -51,7 +57,7 @@ export function useMerchantMemory() {
 
     return {
       category_id: record.category_id,
-      subcategory_id: null, // backend ondersteunt dit nog niet
+      subcategory_id: null,
       confidence: record.confidence ?? 1,
     };
   }
@@ -66,6 +72,6 @@ export function useMerchantMemory() {
     error,
     reload: load,
     retrain,
-    suggestCategory, // ⭐ added
+    suggestCategory,
   };
 }
