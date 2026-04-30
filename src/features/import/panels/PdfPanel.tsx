@@ -17,13 +17,15 @@ export function PdfPanel({ onClose }: { onClose?: () => void }) {
   const toast = useToast();
   const navigate = useNavigate();
 
+  const API = import.meta.env.VITE_API_URL;
+
   // ===============================
   // Stap 1: PDF inlezen + duplicate check
   // ===============================
   async function handlePdfLoaded(rows: any[]) {
     const mapped = rows.map(mapPdfRowToTransaction);
 
-    const existing = await fetch("/api/transactions").then((r) => r.json());
+    const existing = await fetch(`${API}/transactions`).then((r) => r.json());
     const filtered = mapped.filter((tx) => !isDuplicate(existing.data, tx));
 
     setPreview(filtered);
@@ -51,7 +53,6 @@ export function PdfPanel({ onClose }: { onClose?: () => void }) {
       console.log(`⏳ Starting import of ${preview.length} transactions...`);
       const startTime = Date.now();
 
-      // ⭐ Wacht op ALLE saves
       await Promise.all(preview.map((tx) => saveTransaction(tx)));
 
       const elapsed = Date.now() - startTime;
@@ -68,7 +69,6 @@ export function PdfPanel({ onClose }: { onClose?: () => void }) {
 
       if (onClose) onClose();
 
-      // ⭐ Verhoogde delay: wacht op database sync
       const refreshDelay = Math.max(1000, elapsed + 500);
       console.log(`⏱️ Navigating in ${refreshDelay}ms...`);
 

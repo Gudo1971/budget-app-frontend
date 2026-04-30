@@ -2,7 +2,7 @@ import { useState } from "react";
 import { VStack, useDisclosure } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
-import type { Transaction } from "@shared/types/Transaction";
+import type { Transaction } from "@/shared/types/Transaction";
 import type { Category } from "@/features/categories/types/Category";
 
 import { TransactionCard } from "@/features/transactions/components/create/list/TransactionCard";
@@ -68,7 +68,9 @@ export function TransactionsList({
   const handleCreateCategory = async (name: string) => {
     if (!selected) return;
 
-    const res = await fetch("/api/categories", {
+    const API = import.meta.env.VITE_API_URL;
+
+    const res = await fetch(`${API}/categories`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

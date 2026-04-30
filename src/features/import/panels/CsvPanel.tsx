@@ -17,13 +17,15 @@ export function CsvPanel({ onClose }: { onClose?: () => void }) {
   const toast = useToast();
   const navigate = useNavigate();
 
+  const API = import.meta.env.VITE_API_URL;
+
   // ===============================
   // Stap 1: CSV inlezen + duplicate check
   // ===============================
   async function handleCsvLoaded(rows: any[]) {
     const mapped = rows.map(mapCsvRowToTransaction);
 
-    const existing = await fetch("/api/transactions").then((r) => r.json());
+    const existing = await fetch(`${API}/transactions`).then((r) => r.json());
     const filtered = mapped.filter((tx) => !isDuplicate(existing.data, tx));
 
     setPreview(filtered);
@@ -51,11 +53,12 @@ export function CsvPanel({ onClose }: { onClose?: () => void }) {
       console.log(`⏳ Starting import of ${preview.length} transactions...`);
       const startTime = Date.now();
 
-      // ⭐ Wacht op ALLE saves
       await Promise.all(preview.map((tx) => saveTransaction(tx)));
 
       const elapsed = Date.now() - startTime;
-      console.log(`✅ All ${preview.length} transactions saved in ${elapsed}ms`);
+      console.log(
+        `✅ All ${preview.length} transactions saved in ${elapsed}ms`,
+      );
 
       toast({
         title: `${preview.length} transacties geïmporteerd`,
@@ -66,10 +69,9 @@ export function CsvPanel({ onClose }: { onClose?: () => void }) {
 
       if (onClose) onClose();
 
-      // ⭐ Verhoogde delay: wacht op database sync
       const refreshDelay = Math.max(1000, elapsed + 500);
       console.log(`⏱️ Navigating in ${refreshDelay}ms...`);
-      
+
       setTimeout(() => {
         navigate("/transactions?refresh=" + Date.now());
       }, refreshDelay);

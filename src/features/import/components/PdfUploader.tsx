@@ -13,6 +13,8 @@ export function PdfUploader({ onData }: { onData: (rows: any[]) => void }) {
   const [error, setError] = useState("");
   const toast = useToast();
 
+  const API = import.meta.env.VITE_API_URL;
+
   async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -30,7 +32,7 @@ export function PdfUploader({ onData }: { onData: (rows: any[]) => void }) {
       const formData = new FormData();
       formData.append("pdf", file);
 
-      const res = await fetch("/api/ai/pdf-extract", {
+      const res = await fetch(`${API}/ai/pdf-extract`, {
         method: "POST",
         body: formData,
       });
@@ -50,7 +52,6 @@ export function PdfUploader({ onData }: { onData: (rows: any[]) => void }) {
 
       setLoading(false);
 
-      // ⭐ Alleen data doorgeven
       onData(data.rows);
     } catch (e) {
       console.error(e);

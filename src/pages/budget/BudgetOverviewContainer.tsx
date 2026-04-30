@@ -5,10 +5,12 @@ export function BudgetOverviewContainer() {
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const API = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/budget");
+        const res = await fetch(`${API}/budget`);
         const data = await res.json();
         setBudgets(data);
       } finally {
@@ -17,7 +19,7 @@ export function BudgetOverviewContainer() {
     }
 
     load();
-  }, []);
+  }, [API]);
 
   return <BudgetOverviewPage budgets={budgets} loading={loading} />;
 }

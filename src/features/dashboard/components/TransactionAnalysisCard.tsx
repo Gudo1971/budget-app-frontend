@@ -41,11 +41,13 @@ export const TransactionAnalysisCard = (
   // ⭐ FETCH SUMMARY DATA
   useEffect(() => {
     async function load() {
+      const API = import.meta.env.VITE_API_URL;
+
       const from = range.from.toISOString().slice(0, 10);
       const to = range.to.toISOString().slice(0, 10);
 
       const res = await fetch(
-        `/api/summary?userId=demo-user&from=${from}&to=${to}`,
+        `${API}/summary?userId=demo-user&from=${from}&to=${to}`,
       );
 
       const json = await res.json();

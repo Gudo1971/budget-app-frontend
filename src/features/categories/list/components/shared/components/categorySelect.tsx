@@ -14,13 +14,14 @@ type Props = {
 
 export function CategorySelect({ value, onChange }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const API = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    fetch("/api/categories")
+    fetch(`${API}/categories`)
       .then((res) => res.json())
       .then(setCategories)
       .catch((err) => console.error("Failed to load categories", err));
-  }, []);
+  }, [API]);
 
   return (
     <Select

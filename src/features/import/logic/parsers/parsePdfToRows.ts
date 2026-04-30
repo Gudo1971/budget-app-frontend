@@ -1,7 +1,8 @@
 export async function parsePdfToRows(file: File) {
   const base64 = await fileToBase64(file);
+  const API = import.meta.env.VITE_API_URL;
 
-  const response = await fetch("/api/ai/pdf-extract", {
+  const response = await fetch(`${API}/ai/pdf-extract`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ pdf: base64 }),

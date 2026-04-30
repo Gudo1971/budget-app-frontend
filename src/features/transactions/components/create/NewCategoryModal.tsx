@@ -25,8 +25,10 @@ export function NewCategoryModal({
 }: Props) {
   const [name, setName] = useState("");
 
+  const API = import.meta.env.VITE_API_URL;
+
   async function createCategory() {
-    const res = await fetch("/api/categories", {
+    const res = await fetch(`${API}/categories`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, name }),
