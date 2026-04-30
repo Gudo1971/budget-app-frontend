@@ -24,7 +24,7 @@ export function useCreateTransactionFlow() {
   // ⭐ STEP 1 — Extract receipt
   async function ensureExtracted(receiptId: number) {
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/receipts/${receiptId}/extract`,
+      `${import.meta.env.VITE_API_URL}/receipts/${receiptId}/extract`,
       { method: "POST" },
     );
 
@@ -57,18 +57,15 @@ export function useCreateTransactionFlow() {
     userId: string,
     receiptId: number,
   ): Promise<{ isDuplicate: boolean; transactionId?: number }> {
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/transactions`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          receiptId,
-          userId,
-        }),
-      },
-    );
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/transactions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...form,
+        receiptId,
+        userId,
+      }),
+    });
 
     if (!res.ok) {
       const error = await res.text();
@@ -91,7 +88,7 @@ export function useCreateTransactionFlow() {
   // ⭐ STEP 4 — Link to existing transaction
   async function linkToExisting(receiptId: number, transactionId: number) {
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/receipts/${receiptId}/confirm-link`,
+      `${import.meta.env.VITE_API_URL}/receipts/${receiptId}/confirm-link`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

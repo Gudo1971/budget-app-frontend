@@ -10,7 +10,7 @@ export async function saveTransaction(tx: any) {
     userId: "demo-user",
   };
 
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/transactions`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/transactions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

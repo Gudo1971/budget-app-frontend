@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { apiPost } from "@/lib/api/api";
-import type { Transaction } from "@shared/types/Transaction";
+import type { Transaction } from "@/shared/types/Transaction";
 
 type FilterParams = {
   userId: string;

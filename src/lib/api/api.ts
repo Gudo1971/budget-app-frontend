@@ -75,9 +75,9 @@ export function apiDelete<T>(path: string, options: RequestInit = {}) {
 // ---------------------------------------------------------
 
 export function getBudget() {
-  return apiGet("/api/budget");
+  return apiGet("/budget");
 }
 
 export function saveBudget(total_budget: number) {
-  return apiPost("/api/budget", { total_budget });
+  return apiPost("/budget", { total_budget });
 }

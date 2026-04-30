@@ -6,7 +6,7 @@ export type Receipt = {
   filename: string;
   original_name: string;
   uploaded_at: string;
-  status: "pending" | "linked" | "archived"; // ← status toevoegen
+  status: "pending" | "linked" | "archived";
 };
 
 export function ReceiptCard({
@@ -22,6 +22,8 @@ export function ReceiptCard({
   onClick?: () => void;
   isSelected?: boolean;
 }) {
+  const API = import.meta.env.VITE_API_URL;
+
   return (
     <Box
       p={4}
@@ -44,11 +46,11 @@ export function ReceiptCard({
           border="1px solid gray.700"
           onClick={(e) => {
             e.stopPropagation();
-            window.open(`/api/receipts/${receipt.id}/file`, "_blank");
+            window.open(`${API}/receipts/${receipt.id}/file`, "_blank");
           }}
         >
           <img
-            src={`/api/receipts/${receipt.id}/file`}
+            src={`${API}/receipts/${receipt.id}/file`}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         </Box>
@@ -60,7 +62,6 @@ export function ReceiptCard({
               {receipt.original_name}
             </Text>
 
-            {/* STATUS BADGES */}
             {receipt.status === "pending" && (
               <Badge colorScheme="yellow">In afwachting</Badge>
             )}

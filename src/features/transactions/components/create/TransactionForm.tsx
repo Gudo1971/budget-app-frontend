@@ -41,7 +41,7 @@ export function TransactionForm() {
   useEffect(() => {
     const fetchCategories = async () => {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/categories?userId=${userId}`,
+        `${import.meta.env.VITE_API_URL}/categories?userId=${userId}`,
       );
       const data = await res.json();
       setCategories(data);
@@ -61,7 +61,7 @@ export function TransactionForm() {
 
   // ⭐ Submit to backend (NO localhost)
   const onSubmit = async (data: FormData) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/api/transactions`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/transactions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

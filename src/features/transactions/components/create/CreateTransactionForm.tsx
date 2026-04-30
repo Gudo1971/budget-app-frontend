@@ -103,7 +103,7 @@ export function CreateTransactionForm({
 
   // ⭐ Load categories from backend
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/categories?userId=${userId}`)
+    fetch(`${import.meta.env.VITE_API_URL}/categories?userId=${userId}`)
       .then((res) => res.json())
       .then((data: Category[]) => {
         setCategories(data);

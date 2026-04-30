@@ -16,7 +16,7 @@ export async function callAIStream(
   }
   emitAIDebug({ id, type: "start", prompt });
 
-  const response = await fetch(`${API_URL}/api/ai/stream`, {
+  const response = await fetch(`${API_URL}/ai/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt }),

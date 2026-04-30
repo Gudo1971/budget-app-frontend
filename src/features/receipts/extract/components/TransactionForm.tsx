@@ -35,21 +35,19 @@ type FormData = z.infer<typeof schema>;
 
 export function TransactionForm() {
   const { id: userId } = useUser();
-
   const [categories, setCategories] = useState<Category[]>([]);
+  const API = import.meta.env.VITE_API_URL;
 
-  // ⭐ Load categories from backend (NO localhost)
+  // ⭐ Load categories from backend (correct)
   useEffect(() => {
     const fetchCategories = async () => {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/categories?userId=${userId}`,
-      );
+      const res = await fetch(`${API}/categories?userId=${userId}`);
       const data = await res.json();
       setCategories(data);
     };
 
     fetchCategories();
-  }, [userId]);
+  }, [API, userId]);
 
   const {
     register,
@@ -60,9 +58,9 @@ export function TransactionForm() {
     resolver: zodResolver(schema),
   });
 
-  // ⭐ Submit to backend (NO localhost)
+  // ⭐ Submit to backend (correct)
   const onSubmit = async (data: FormData) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/api/transactions`, {
+    await fetch(`${API}/transactions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

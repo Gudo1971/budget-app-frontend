@@ -70,7 +70,7 @@ export function UploadPanel({
       }
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/receipts/upload/smart`,
+        `${import.meta.env.VITE_API_URL}/receipts/upload/smart`,
         {
           method: "POST",
           body: formData,
@@ -112,7 +112,7 @@ export function UploadPanel({
 
         uploadedReceipts.push({
           id: data.duplicate.receiptId,
-          thumbnailUrl: `${import.meta.env.VITE_API_URL}/api/receipts/${data.duplicate.receiptId}/file`,
+          thumbnailUrl: `${import.meta.env.VITE_API_URL}/receipts/${data.duplicate.receiptId}/file`,
           date: data.duplicate.date ?? null,
         });
 
@@ -125,7 +125,7 @@ export function UploadPanel({
 
         uploadedReceipts.push({
           id: r.id,
-          thumbnailUrl: `${import.meta.env.VITE_API_URL}/api/receipts/${r.id}/file`,
+          thumbnailUrl: `${import.meta.env.VITE_API_URL}/receipts/${r.id}/file`,
           date: r.uploaded_at,
         });
 
