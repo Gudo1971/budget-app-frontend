@@ -6,7 +6,32 @@
 // 🔥 1. Base URL — backend only
 // In productie: altijd VITE_API_URL
 // In dev: fallback naar localhost (zonder /api)
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const getApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+
+  // Debug log
+  console.log("[API] Environment variable:", envUrl);
+
+  // Als env var begint met "VITE_API_URL=", is het verkeerd geparsed
+  if (
+    envUrl &&
+    typeof envUrl === "string" &&
+    !envUrl.startsWith("VITE_API_URL=")
+  ) {
+    return envUrl;
+  }
+
+  // Fallback voor development
+  if (import.meta.env.DEV) {
+    return "http://localhost:3001";
+  }
+
+  // Hardcoded fallback voor production (als env var niet werkt)
+  console.warn("[API] Using hardcoded production URL - check Vercel env vars!");
+  return "https://budget-app-backend-production-2621.up.railway.app/api";
+};
+
+const API_URL = getApiUrl();
 
 // 🔥 2. Shared fetch wrapper
 async function request<T>(
