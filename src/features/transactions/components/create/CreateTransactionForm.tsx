@@ -4,22 +4,24 @@ import {
   ExtractedReceipt,
   Receipt,
 } from "../../../receipts/extract/types/extractTypes";
-import { normalizeMerchant } from "@shared/services/normalizeMerchant";
 import { NewCategoryModal } from "./NewCategoryModal";
 import { TransactionFormFields } from "./TransactionFormFields";
 import { DuplicateMatchModal } from "./DuplicateMatchModal";
 import { useCreateTransactionFlow } from "../../create/hooks/useCreateTransactionFlow";
 import { useMerchantMemory } from "@/features/merchantMemory/hooks/useMerchantMemory";
 
+// ⭐ FRONTEND-SAFE merchant normalizer
+function normalizeMerchantFrontend(name: string) {
+  return name.trim().toLowerCase();
+}
+
 // Normalize any extracted date to an ISO yyyy-mm-dd string for the date input
 function formatDateForInput(raw?: string | null) {
   if (!raw) return "";
   const value = raw.trim();
 
-  // Already ISO-like
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
 
-  // European format dd/mm/yyyy
   const euro = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (euro) {
     const [, d, m, y] = euro;
@@ -27,7 +29,6 @@ function formatDateForInput(raw?: string | null) {
     if (!isNaN(date.getTime())) return date.toISOString().slice(0, 10);
   }
 
-  // Named month e.g. 12-dec-2022 or 12-dec-22
   const named = value.match(/^(\d{1,2})[-\s]([a-zA-Z]{3,})[-\s](\d{2,4})$/);
   if (named) {
     const [, d, mon, y] = named;
@@ -35,7 +36,6 @@ function formatDateForInput(raw?: string | null) {
     if (!isNaN(date.getTime())) return date.toISOString().slice(0, 10);
   }
 
-  // Fallback: let Date parse and return ISO date part if valid
   const parsed = new Date(value);
   if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
 
@@ -66,17 +66,15 @@ export function CreateTransactionForm({
   const [categories, setCategories] = useState<Category[]>([]);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
-  // ⭐ Track if user manually changed category
   const [userChangedCategory, setUserChangedCategory] = useState(false);
 
-  // ⭐ Unified merchant normalization
-  const normalizedMerchant = normalizeMerchant(
+  // ⭐ Use frontend-safe normalizer
+  const normalizedMerchant = normalizeMerchantFrontend(
     extracted.merchant ?? "",
-  ).display;
+  );
 
   const normalizedDate = formatDateForInput(extracted.date);
 
-  // ⭐ ID-based form state
   const [form, setForm] = useState({
     amount: -(extracted.total ?? 0),
     date: normalizedDate,
@@ -98,37 +96,31 @@ export function CreateTransactionForm({
   ) {
     setForm((prev) => ({ ...prev, [key]: value }));
 
-    // Mark category as manually changed
     if (key === "category_id") {
       setUserChangedCategory(true);
     }
   }
 
-  // ⭐ Load categories ONLY ONCE on initial mount
+  // ⭐ Load categories from backend
   useEffect(() => {
-    fetch(`http://localhost:3001/api/categories?userId=${userId}`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/categories?userId=${userId}`)
       .then((res) => res.json())
       .then((data: Category[]) => {
         setCategories(data);
-        // ⭐ REMOVED: Don't auto-set category from extracted
-        // User must MANUALLY select a category
       })
       .catch((err) => console.error("Failed to load categories", err));
-  }, [userId]); // ⭐ ONLY run once on userId change
+  }, [userId]);
 
-  // ⭐ Reset userChangedCategory when merchant changes
   useEffect(() => {
     setUserChangedCategory(false);
   }, [normalizedMerchant]);
 
-  // ⭐ Merchant Memory Suggestion
   const [memorySuggestion, setMemorySuggestion] = useState<{
     category_id: number;
     subcategory_id: number | null;
     confidence: number;
   } | null>(null);
 
-  // ⭐ MOVE THIS EFFECT HIER - Hide banner when user changes category
   useEffect(() => {
     if (!memorySuggestion) return;
 
@@ -137,26 +129,22 @@ export function CreateTransactionForm({
     }
   }, [form.category_id, memorySuggestion]);
 
-  // ⭐ Show AI suggestion as OPTION, but don't auto-apply
   useEffect(() => {
     if (!normalizedMerchant || userChangedCategory) {
       return;
     }
 
-    // ⭐ FIRST: Try merchant memory
     let suggestion = suggestCategory(normalizedMerchant);
 
-    // ⭐ FALLBACK: If no merchant memory, try AI categorization
     if (!suggestion && extracted.merchant_category) {
       suggestion = {
-        category_id: extracted.merchant_category, // ✅ Already a number now
+        category_id: extracted.merchant_category,
         subcategory_id: null,
-        confidence: 0.6, // lower confidence for AI
+        confidence: 0.6,
       };
     }
 
     if (suggestion) {
-      // ⭐ AUTO-FILL suggestion in field
       setMemorySuggestion(suggestion);
       update("category_id", suggestion.category_id);
       update("subcategory_id", suggestion.subcategory_id ?? null);
@@ -168,14 +156,11 @@ export function CreateTransactionForm({
     extracted.merchant_category,
   ]);
 
-  // ⭐ Submit
   function handleSubmit() {
-    // ⭐ VALIDATION: Verplicht categorie kiezen
     if (!form.category_id) {
       toast({
         title: "Categorie verplicht",
-        description:
-          "Selecteer alstublieft een categorie voordat u de transactie aanmaakt.",
+        description: "Selecteer een categorie voordat je verder gaat.",
         status: "warning",
         duration: 3000,
         isClosable: true,
@@ -187,16 +172,11 @@ export function CreateTransactionForm({
       receiptId: receipt.id,
       userId,
       form,
-      onDuplicateFound: async (match) => {
-        // ⭐ SHOW MODAL instead of auto-delete
-        console.log("🎯 Duplicate found, modal will show");
-        // Modal is controlled by matchResult state set in runCreateFlow
-        // User clicks confirm/cancel in DuplicateMatchModal
-      },
+      onDuplicateFound: () => {},
       onSuccess: () => {
         toast({
           title: "Transactie aangemaakt",
-          description: "De bon is gekoppeld aan een nieuwe transactie.",
+          description: "De bon is gekoppeld.",
           status: "success",
           duration: 3000,
           isClosable: true,
@@ -220,7 +200,6 @@ export function CreateTransactionForm({
     });
   }
 
-  // ⭐ Confirm duplicate
   async function handleConfirmDuplicate() {
     try {
       await linkToExisting(receipt.id, matchResult.duplicate.id);
@@ -260,7 +239,6 @@ export function CreateTransactionForm({
         color="white"
         boxShadow="md"
       >
-        {/* ⭐ Suggestie Banner */}
         {memorySuggestion && (
           <Box bg="purple.700" p={3} borderRadius="md" mb={2} boxShadow="sm">
             <Text
