@@ -1,10 +1,11 @@
 import { emitAIDebug } from "../../aiDebug";
-const API_URL = "http://localhost:3001";
+
+const API_URL = import.meta.env.VITE_API_URL;
 const DEV = import.meta.env.DEV;
 
 export async function callAIStream(
   prompt: string,
-  onChunk: (chunk: string) => void
+  onChunk: (chunk: string) => void,
 ) {
   const id = crypto.randomUUID();
   const startTime = performance.now();

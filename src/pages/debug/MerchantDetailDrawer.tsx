@@ -12,7 +12,16 @@ import {
   VStack,
   HStack,
 } from "@chakra-ui/react";
-import { MerchantMemoryRecord } from "@shared/types/merchantMemory";
+
+// ⭐ Frontend-safe type (no backend imports)
+export type MerchantMemoryRecord = {
+  key: string;
+  display: string;
+  category_id: number;
+  subcategory_id: number | null;
+  confidence: number;
+  user_id: string;
+};
 
 type Props = {
   merchant: MerchantMemoryRecord | null;
@@ -33,7 +42,7 @@ export default function MerchantDetailDrawer(props: Props) {
         : "red";
 
   async function retrain() {
-    await fetch("http://localhost:3001/debug/retrain", {
+    await fetch(`${import.meta.env.VITE_API_URL}/debug/retrain`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

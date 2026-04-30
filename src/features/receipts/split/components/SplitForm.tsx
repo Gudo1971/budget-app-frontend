@@ -21,20 +21,23 @@ export function SplitForm({ transactionId }: { transactionId: number }) {
 
   const mutation = useMutation({
     mutationFn: async (data: SplitFormValues) => {
-      const res = await fetch("http://localhost:3001/split-transactions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          transaction_id: transactionId,
-          items: [
-            {
-              item_name: data.item_name,
-              amount: data.amount,
-              category_id: null,
-            },
-          ],
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/split-transactions`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transaction_id: transactionId,
+            items: [
+              {
+                item_name: data.item_name,
+                amount: data.amount,
+                category_id: null,
+              },
+            ],
+          }),
+        },
+      );
 
       if (!res.ok) throw new Error("Failed to save split");
       return res.json();

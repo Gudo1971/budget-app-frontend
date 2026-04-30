@@ -4,7 +4,9 @@
 // ---------------------------------------------------------
 
 // 🔥 1. Base URL — backend only
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+// In productie: altijd VITE_API_URL
+// In dev: fallback naar localhost (zonder /api)
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 // 🔥 2. Shared fetch wrapper
 async function request<T>(
@@ -73,9 +75,9 @@ export function apiDelete<T>(path: string, options: RequestInit = {}) {
 // ---------------------------------------------------------
 
 export function getBudget() {
-  return apiGet("/budget");
+  return apiGet("/api/budget");
 }
 
 export function saveBudget(total_budget: number) {
-  return apiPost("/budget", { total_budget });
+  return apiPost("/api/budget", { total_budget });
 }

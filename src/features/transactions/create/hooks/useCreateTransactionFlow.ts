@@ -24,9 +24,10 @@ export function useCreateTransactionFlow() {
   // ⭐ STEP 1 — Extract receipt
   async function ensureExtracted(receiptId: number) {
     const res = await fetch(
-      `http://localhost:3001/api/receipts/${receiptId}/extract`,
+      `${import.meta.env.VITE_API_URL}/api/receipts/${receiptId}/extract`,
       { method: "POST" },
     );
+
     if (!res.ok) {
       const error = await res.text();
       throw new Error(`Extract failed (${res.status}): ${error}`);
@@ -43,7 +44,7 @@ export function useCreateTransactionFlow() {
     }
   }
 
-  // ⭐ STEP 3 — Create new transaction (ONLY if no duplicate)
+  // ⭐ STEP 3 — Create new transaction
   async function createTransaction(
     form: {
       amount: number;
@@ -56,15 +57,18 @@ export function useCreateTransactionFlow() {
     userId: string,
     receiptId: number,
   ): Promise<{ isDuplicate: boolean; transactionId?: number }> {
-    const res = await fetch("http://localhost:3001/api/transactions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        receiptId,
-        userId,
-      }),
-    });
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/transactions`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          receiptId,
+          userId,
+        }),
+      },
+    );
 
     if (!res.ok) {
       const error = await res.text();
@@ -73,20 +77,8 @@ export function useCreateTransactionFlow() {
 
     const result = await res.json();
 
-    console.log("📦 CREATE RESPONSE:", result);
-    console.log("📦 Full result structure:", {
-      success: result.success,
-      data: result.data,
-      error: result.error,
-      duplicate: result.data?.duplicate,
-    });
-    alert(
-      `DEBUG CREATE:\nStatus: ${res.status}\nSuccess: ${result.success}\nData.duplicate: ${result.data?.duplicate}\nData: ${JSON.stringify(result.data)}\nError: ${result.error}`,
-    );
-
-    // Check if backend detected duplicate
+    // Backend duplicate detection
     if (result.data?.duplicate === true) {
-      console.log("🎯 Duplicate detected in response:", result.data);
       return {
         isDuplicate: true,
         transactionId: result.data.transactionId,
@@ -96,10 +88,10 @@ export function useCreateTransactionFlow() {
     return { isDuplicate: false };
   }
 
-  // ⭐ STEP 4 — Link to existing transaction (duplicate)
+  // ⭐ STEP 4 — Link to existing transaction
   async function linkToExisting(receiptId: number, transactionId: number) {
     const res = await fetch(
-      `http://localhost:3001/api/receipts/${receiptId}/confirm-link`,
+      `${import.meta.env.VITE_API_URL}/api/receipts/${receiptId}/confirm-link`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,7 +105,7 @@ export function useCreateTransactionFlow() {
     }
   }
 
-  // ⭐ MAIN FLOW — This is what your UI calls
+  // ⭐ MAIN FLOW
   async function runCreateFlow({
     receiptId,
     userId,
@@ -125,27 +117,20 @@ export function useCreateTransactionFlow() {
     try {
       setIsLoading(true);
 
-      // ⭐ ALWAYS check for duplicates - regardless of category
-      console.log("🔍 [FLOW] Step 1: Finding duplicate matches...");
+      // STEP 1 — Check duplicate
       const match = await findMatch(receiptId);
-      console.log("✅ [FLOW] Match result:", match);
 
       if (match.action === "duplicate" && match.duplicate) {
-        console.log("🎯 [FLOW] Duplicate found, showing modal...");
         setMatchResult(match);
         onDuplicateFound?.(match);
         setIsLoading(false);
         return;
       }
 
-      console.log(
-        "📌 [FLOW] No duplicate, creating new transaction with user-provided data...",
-      );
+      // STEP 2 — Create transaction
       const createResult = await createTransaction(form, userId, receiptId);
 
       if (createResult.isDuplicate) {
-        console.log("🎯 [FLOW] Backend detected duplicate during create");
-        // Treat as duplicate
         onDuplicateFound?.({
           action: "duplicate",
           duplicate: {
@@ -154,12 +139,11 @@ export function useCreateTransactionFlow() {
             date: form.date,
             merchant: form.merchant,
           },
-        } as any);
+        });
         setIsLoading(false);
         return;
       }
 
-      console.log("✅ [FLOW] Transaction created successfully");
       onSuccess?.();
     } catch (err) {
       console.error("❌ Create flow error:", err);

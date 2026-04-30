@@ -1,6 +1,6 @@
 export async function rolloverBudget(month: string) {
   const res = await fetch(
-    `http://localhost:3001/api/budget/rollover/${month}`,
+    `${import.meta.env.VITE_API_URL}/api/budget/rollover/${month}`,
     {
       method: "POST",
     },

@@ -70,7 +70,7 @@ export function UploadPanel({
       }
 
       const res = await fetch(
-        "http://localhost:3001/api/receipts/upload/smart",
+        `${import.meta.env.VITE_API_URL}/api/receipts/upload/smart`,
         {
           method: "POST",
           body: formData,
@@ -88,7 +88,7 @@ export function UploadPanel({
 
       const data = await res.json();
 
-      // ⭐⭐⭐ KOPPEL-FLOW (BELANGRIJK!)
+      // ⭐⭐⭐ KOPPEL-FLOW
       if (transactionId) {
         toast({
           title: "Bon gekoppeld",
@@ -96,10 +96,7 @@ export function UploadPanel({
           status: "success",
         });
 
-        // Modal sluiten
         closePreview?.();
-
-        // NIETS meer doen
         setIsUploading(false);
         setFiles([]);
         return;
@@ -115,7 +112,7 @@ export function UploadPanel({
 
         uploadedReceipts.push({
           id: data.duplicate.receiptId,
-          thumbnailUrl: `http://localhost:3001/api/receipts/${data.duplicate.receiptId}/file`,
+          thumbnailUrl: `${import.meta.env.VITE_API_URL}/api/receipts/${data.duplicate.receiptId}/file`,
           date: data.duplicate.date ?? null,
         });
 
@@ -128,7 +125,7 @@ export function UploadPanel({
 
         uploadedReceipts.push({
           id: r.id,
-          thumbnailUrl: `http://localhost:3001/api/receipts/${r.id}/file`,
+          thumbnailUrl: `${import.meta.env.VITE_API_URL}/api/receipts/${r.id}/file`,
           date: r.uploaded_at,
         });
 

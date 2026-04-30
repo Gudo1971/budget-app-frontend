@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser } from "../../../../context/UserContext";
 
 type Category = {
-  id: string;
+  id: number;
   name: string;
 };
 
@@ -28,7 +28,7 @@ const schema = z.object({
   date: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Ongeldige datum",
   }),
-  category: z.string().min(1, "Kies een categorie"),
+  category_id: z.string().min(1, "Kies een categorie"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -37,15 +37,18 @@ export function TransactionForm() {
   const { id: userId } = useUser();
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // ⭐ Load categories from backend (NO localhost)
   useEffect(() => {
     const fetchCategories = async () => {
-      const res = await fetch("http://localhost:3001/api/categories");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/categories?userId=${userId}`,
+      );
       const data = await res.json();
       setCategories(data);
     };
 
     fetchCategories();
-  }, []);
+  }, [userId]);
 
   const {
     register,
@@ -56,13 +59,17 @@ export function TransactionForm() {
     resolver: zodResolver(schema),
   });
 
+  // ⭐ Submit to backend (NO localhost)
   const onSubmit = async (data: FormData) => {
-    await fetch("http://localhost:3001/api/transactions", {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/transactions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ...data,
         amount: Number(data.amount),
+        description: data.description,
+        date: data.date,
+        category_id: Number(data.category_id),
+        subcategory_id: null,
         userId,
       }),
     });
@@ -101,17 +108,20 @@ export function TransactionForm() {
             {errors.date && <Text color="red.500">{errors.date.message}</Text>}
           </FormControl>
 
-          <FormControl isInvalid={!!errors.category}>
+          <FormControl isInvalid={!!errors.category_id}>
             <FormLabel>Categorie</FormLabel>
-            <Select placeholder="Kies een categorie" {...register("category")}>
+            <Select
+              placeholder="Kies een categorie"
+              {...register("category_id")}
+            >
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.name}>
+                <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>
               ))}
             </Select>
-            {errors.category && (
-              <Text color="red.500">{errors.category.message}</Text>
+            {errors.category_id && (
+              <Text color="red.500">{errors.category_id.message}</Text>
             )}
           </FormControl>
 
