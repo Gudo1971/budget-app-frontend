@@ -1,9 +1,9 @@
 // ---------------------------------------------------------
-// ⭐ PREMIUM API CLIENT
-// Eén consistente, veilige, future‑proof API‑laag
+// ⭐ PREMIUM API CLIENT — Future‑Proof Edition
+// Eén consistente, veilige, typed API‑laag voor jouw hele app
 // ---------------------------------------------------------
 
-// 🔥 1. Base URL — altijd backend, nooit frontend
+// 🔥 1. Base URL — backend only
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 // 🔥 2. Shared fetch wrapper
@@ -67,15 +67,15 @@ export function apiPut<T>(path: string, body: any, options: RequestInit = {}) {
 export function apiDelete<T>(path: string, options: RequestInit = {}) {
   return request<T>(path, "DELETE", undefined, options);
 }
-export async function getBudget() {
-  const res = await fetch("/api/budget");
-  return res.json();
+
+// ---------------------------------------------------------
+// ⭐ DOMAIN‑SPECIFIC API CALLS
+// ---------------------------------------------------------
+
+export function getBudget() {
+  return apiGet("/budget");
 }
 
-export async function saveBudget(total_budget: number) {
-  return fetch("/api/budget", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ total_budget }),
-  });
+export function saveBudget(total_budget: number) {
+  return apiPost("/budget", { total_budget });
 }

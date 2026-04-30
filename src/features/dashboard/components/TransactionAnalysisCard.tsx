@@ -140,7 +140,7 @@ export const TransactionAnalysisCard = (
             </Box>
 
             <Text fontSize="xs" color="gray.400" mt={1}>
-              €{spent.toFixed(0)} van €{budget.toFixed(0)} uitgegeven — €
+              €{spent.toFixed(0)} van €{budget.toFixed(0)} uitgegeven €
               {remaining.toFixed(0)} over
             </Text>
           </Box>

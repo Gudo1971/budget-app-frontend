@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { MerchantMemoryRecord } from "@/shared/types/merchantMemory";
-import { normalizeMerchant } from "@/shared/services/normalizeMerchant";
+import { normalizeMerchant } from "@shared/services/normalizeMerchant";
 
 export function useMerchantMemory() {
   const [merchants, setMerchants] = useState<MerchantMemoryRecord[]>([]);
