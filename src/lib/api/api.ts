@@ -23,7 +23,7 @@ const getApiUrl = () => {
 
   // Fallback voor development
   if (import.meta.env.DEV) {
-    return "http://localhost:3001";
+    return "http://localhost:3001/api";
   }
 
   // Hardcoded fallback voor production (als env var niet werkt)

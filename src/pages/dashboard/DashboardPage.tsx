@@ -11,7 +11,7 @@ import {
 
 import { FiSettings } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 import { InsightsCarousel } from "@/features/insights/components/InsightsCarousel";
 import { TransactionAnalysisCard } from "@/features/dashboard/components/TransactionAnalysisCard";
@@ -48,7 +48,7 @@ function extractAvailableMonths(transactions: { date: string }[]) {
   const set = new Set<string>();
 
   transactions.forEach((t) => {
-    const d = new Date(t.date);
+    const d = parseLocalDate(t.date);
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, "0");
     set.add(`${year}-${month}`);
@@ -58,8 +58,41 @@ function extractAvailableMonths(transactions: { date: string }[]) {
 }
 
 function isInRange(dateString: string, from: Date, to: Date) {
-  const d = new Date(dateString);
+  const d = parseLocalDate(dateString);
   return d >= from && d <= to;
+}
+
+function parseLocalDate(dateString: string) {
+  const [datePart] = dateString.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return new Date(dateString);
+  }
+
+  return new Date(year, month - 1, day);
+}
+
+function formatYearMonth(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+function formatDateLocal(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function monthToRange(yearMonth: string) {
+  const [year, month] = yearMonth.split("-");
+
+  return {
+    from: new Date(Number(year), Number(month) - 1, 1),
+    to: new Date(Number(year), Number(month), 0),
+  };
 }
 
 // --------------------------------------------------
@@ -78,8 +111,8 @@ export default function DashboardPage() {
   const fromDate = range.from;
   const toDate = range.to;
 
-  const from = fromDate.toISOString().slice(0, 10);
-  const to = toDate.toISOString().slice(0, 10);
+  const from = formatDateLocal(fromDate);
+  const to = formatDateLocal(toDate);
 
   // alle transacties voor de maand-selector
   const { data: allTransactions = [] } = useAllTransactions();
@@ -95,6 +128,20 @@ export default function DashboardPage() {
     () => extractAvailableMonths(allTransactions),
     [allTransactions],
   );
+
+  const selectedYearMonth = formatYearMonth(fromDate);
+  const selectedMonthValue =
+    availableMonths.includes(selectedYearMonth)
+      ? selectedYearMonth
+      : availableMonths[0] ?? selectedYearMonth;
+
+  useEffect(() => {
+    if (availableMonths.length === 0) return;
+
+    if (!availableMonths.includes(selectedYearMonth)) {
+      setRange(monthToRange(availableMonths[0]));
+    }
+  }, [availableMonths, selectedYearMonth, setRange]);
 
   const uiTransactions: UITransaction[] = transactions
     .filter((t) => isInRange(t.date, fromDate, toDate))
@@ -275,18 +322,9 @@ export default function DashboardPage() {
         <HStack spacing={3}>
           {/* ⭐ FIXED SELECTOR — gebruikt fromDate */}
           <Select
-            value={`${fromDate.getFullYear()}-${String(
-              fromDate.getMonth() + 1,
-            ).padStart(2, "0")}`}
+            value={selectedMonthValue}
             onChange={(e) => {
-              const [year, month] = e.target.value.split("-");
-              const newFrom = new Date(Number(year), Number(month) - 1, 1);
-              const newTo = new Date(Number(year), Number(month), 0);
-
-              setRange({
-                from: newFrom,
-                to: newTo,
-              });
+              setRange(monthToRange(e.target.value));
             }}
             w="160px"
             size="sm"
