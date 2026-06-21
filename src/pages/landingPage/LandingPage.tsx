@@ -9,7 +9,7 @@ import {
   SimpleGrid,
   Container,
 } from "@chakra-ui/react";
-import { apiGet } from "@/lib/api/api";
+import { apiHealthCheck } from "@/lib/api/api";
 
 const MAX_WAIT_SECONDS = 90;
 const HEALTH_CHECK_INTERVAL_MS = 5000;
@@ -41,7 +41,7 @@ export default function LandingPage() {
 
     const checkBackend = async () => {
       try {
-        await apiGet("/health");
+        await apiHealthCheck();
 
         if (!isCancelled) {
           setIsReady(true);

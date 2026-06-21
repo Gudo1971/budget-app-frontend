@@ -32,6 +32,9 @@ const getApiUrl = () => {
 };
 
 const API_URL = getApiUrl();
+const BACKEND_URL = API_URL.endsWith("/api")
+  ? API_URL.slice(0, -4)
+  : API_URL;
 
 // 🔥 2. Shared fetch wrapper
 async function request<T>(
@@ -40,7 +43,9 @@ async function request<T>(
   body?: any,
   options: RequestInit = {},
 ): Promise<T> {
-  const url = `${API_URL}${path}`;
+  const url = path.startsWith("http://") || path.startsWith("https://")
+    ? path
+    : `${API_URL}${path}`;
 
   console.log(`>>> API ${method}:`, url, body ?? "", options);
 
@@ -93,6 +98,10 @@ export function apiPut<T>(path: string, body: any, options: RequestInit = {}) {
 
 export function apiDelete<T>(path: string, options: RequestInit = {}) {
   return request<T>(path, "DELETE", undefined, options);
+}
+
+export function apiHealthCheck<T>(options: RequestInit = {}) {
+  return request<T>(`${BACKEND_URL}/health`, "GET", undefined, options);
 }
 
 // ---------------------------------------------------------
