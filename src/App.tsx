@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/landingPage/LandingPage";
+
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import InsightsPage from "./pages/dashboard/DashboardInsights";
 import SplitPage from "./features/receipts/extract/pages/SplitPage";
@@ -17,45 +19,48 @@ import { DashboardPeriodProvider } from "./context/DashboardPeriodContext";
 import { BudgetOverviewContainer } from "./pages/budget/BudgetOverviewContainer";
 import { BudgetDetailPage } from "@/features/budget/pages/BudgetDetailPage";
 import CategoryInsightsPage from "@/features/budget/pages/CategoryInsightsPage";
+
 export default function App() {
   return (
     <Routes>
+      {/* Landing Page */}
+      <Route path="/" element={<LandingPage />} />
+
+      {/* De volledige app onder /app */}
       <Route
+        path="/app"
         element={
           <DashboardPeriodProvider>
             <Layout />
           </DashboardPeriodProvider>
         }
       >
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/dashboard/insights" element={<InsightsPage />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
+        <Route index element={<DashboardPage />} />
+        <Route path="dashboard/insights" element={<InsightsPage />} />
+        <Route path="transactions" element={<TransactionsPage />} />
         <Route
-          path="/transactions/settings"
+          path="transactions/settings"
           element={<TransactionSettingsPage />}
         />
 
-        <Route path="/budget/settings" element={<BudgetSettingsPage />} />
-        <Route path="/budget/overview" element={<BudgetOverviewContainer />} />
-        <Route path="/receipts" element={<ReceiptListPage />} />
-        <Route path="/upload-receipt" element={<UploadReceiptEntry />} />
-        <Route path="/receipts/archive" element={<ReceiptArchivePage />} />
+        <Route path="budget/settings" element={<BudgetSettingsPage />} />
+        <Route path="budget/overview" element={<BudgetOverviewContainer />} />
+        <Route path="receipts" element={<ReceiptListPage />} />
+        <Route path="upload-receipt" element={<UploadReceiptEntry />} />
+        <Route path="receipts/archive" element={<ReceiptArchivePage />} />
         <Route
-          path="/budget/settings/:year/:month"
+          path="budget/settings/:year/:month"
           element={<BudgetSettingsPage />}
         />
         <Route
-          path="/category/:id/insights"
+          path="category/:id/insights"
           element={<CategoryInsightsPage />}
         />
 
-        <Route path="/split/:id" element={<SplitPage />} />
-        <Route path="/budget/:year/:month" element={<BudgetDetailPage />} />
-        <Route
-          path="/debug/merchant-memory"
-          element={<MerchantMemoryDebug />}
-        />
-        <Route path="/filters" element={<FilterPage />} />
+        <Route path="split/:id" element={<SplitPage />} />
+        <Route path="budget/:year/:month" element={<BudgetDetailPage />} />
+        <Route path="debug/merchant-memory" element={<MerchantMemoryDebug />} />
+        <Route path="filters" element={<FilterPage />} />
       </Route>
     </Routes>
   );

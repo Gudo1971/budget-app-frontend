@@ -130,10 +130,9 @@ export default function DashboardPage() {
   );
 
   const selectedYearMonth = formatYearMonth(fromDate);
-  const selectedMonthValue =
-    availableMonths.includes(selectedYearMonth)
-      ? selectedYearMonth
-      : availableMonths[0] ?? selectedYearMonth;
+  const selectedMonthValue = availableMonths.includes(selectedYearMonth)
+    ? selectedYearMonth
+    : (availableMonths[0] ?? selectedYearMonth);
 
   useEffect(() => {
     if (availableMonths.length === 0) return;
