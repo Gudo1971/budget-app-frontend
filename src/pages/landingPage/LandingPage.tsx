@@ -11,6 +11,9 @@ import {
 } from "@chakra-ui/react";
 import { apiGet } from "@/lib/api/api";
 
+const MAX_WAIT_SECONDS = 90;
+const HEALTH_CHECK_INTERVAL_MS = 5000;
+
 type FeatureProps = {
   title: string;
   description: string;
@@ -28,36 +31,61 @@ function Feature({ title, description }: FeatureProps) {
 }
 
 export default function LandingPage() {
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(MAX_WAIT_SECONDS);
   const [isReady, setIsReady] = useState(false);
 
-  // ⭐ Warm up backend on landing page load (cold start prevention)
+  // Enable the button as soon as the backend responds, with a hard fallback.
   useEffect(() => {
-    const warmUpBackend = async () => {
+    let isCancelled = false;
+    let retryTimeout: number | undefined;
+
+    const checkBackend = async () => {
       try {
         await apiGet("/health");
-      } catch (err) {
-        // Silently fail - just trying to warm up the backend
-        console.log("Backend warm-up initiated");
+
+        if (!isCancelled) {
+          setIsReady(true);
+        }
+      } catch {
+        if (!isCancelled) {
+          retryTimeout = window.setTimeout(
+            checkBackend,
+            HEALTH_CHECK_INTERVAL_MS,
+          );
+        }
       }
     };
 
-    warmUpBackend();
+    checkBackend();
+
+    const fallbackTimeout = window.setTimeout(() => {
+      if (!isCancelled) {
+        setIsReady(true);
+      }
+    }, MAX_WAIT_SECONDS * 1000);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(fallbackTimeout);
+
+      if (retryTimeout) {
+        window.clearTimeout(retryTimeout);
+      }
+    };
   }, []);
 
-  // ⭐ Timer countdown
   useEffect(() => {
-    if (timeLeft <= 0) {
-      setIsReady(true);
+    if (isReady) {
+      setTimeLeft(0);
       return;
     }
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [isReady]);
 
   return (
     <Box bg="gray.50" _dark={{ bg: "gray.900" }} minH="100vh" py={20}>
@@ -93,7 +121,9 @@ export default function LandingPage() {
             cursor={isReady ? "pointer" : "not-allowed"}
             pointerEvents={isReady ? "auto" : "none"}
           >
-            {isReady ? "Start de app" : `Wacht nog ${timeLeft}s...`}
+            {isReady
+              ? "Start de app"
+              : `Backend opwarmen... ${timeLeft}s`}
           </Button>
 
           <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }}>
